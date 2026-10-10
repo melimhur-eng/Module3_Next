@@ -1,0 +1,9 @@
+[
+  { "id": "doro-wat", "name": "Doro Wat", "price": 240, "category": "Main", "spicy": true },
+  { "id": "shiro", "name": "Shiro", "price": 120, "category": "Vegan", "spicy": false },
+  { "id": "tibs", "name": "Tibs", "price": 280, "category": "Grill", "spicy": false },
+  { "id": "kitfo", "name": "Kitfo", "price": 320, "category": "Main", "spicy": true },
+  { "id": "beyaynetu", "name": "Beyaynetu", "price": 180, "category": "Vegan", "spicy": false },
+  { "id": "misir-wat", "name": "Misir Wat", "price": 140, "category": "Vegan", "spicy": true },
+  { "id": "awaze-tibs", "name": "Awaze Tibs", "price": 300, "category": "Grill", "spicy": true }
+]

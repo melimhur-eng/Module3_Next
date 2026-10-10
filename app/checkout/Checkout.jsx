@@ -4,8 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { selectItems, selectTotal, useCartStore } from "@/lib/cartStore";
 import Field from "./Field";
-import { AREAS, validate } from "./validate";
-import { placeOrder } from "@/lib/orders";
+import { AREAS, validate } from "@/lib/validate";
 
 const FIELDS = ["name", "phone", "area", "notes"];
 
@@ -19,11 +18,12 @@ export default function Checkout({ defaultArea }) {
   const [status, setStatus] = useState("idle"); // idle | submitting | failed | succeeded
   const [receipt, setReceipt] = useState(null);
   const [failure, setFailure] = useState(null);
+  const [serverErrors, setServerErrors] = useState({});
   const formRef = useRef(null);
   const failureRef = useRef(null);
 
   // derived on every render, never stored
-  const errors = validate(form);
+  const errors = { ...validate(form), ...serverErrors };
   const show = (field) => (touched[field] ? errors[field] : undefined);
 
   // the failure message only exists after this render, so focus it in an effect
@@ -33,6 +33,8 @@ export default function Checkout({ defaultArea }) {
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
+    // the server's message for this field no longer applies once it is edited
+    setServerErrors({ ...serverErrors, [e.target.name]: undefined });
   }
 
   function handleBlur(e) {
@@ -54,15 +56,33 @@ export default function Checkout({ defaultArea }) {
     setStatus("submitting");
     setFailure(null);
     try {
-      const placed = await placeOrder({ ...form, items, total });
-      // remember the area so the next checkout starts with it
-      document.cookie = `addis-eats-area=${form.area}; path=/; max-age=31536000`;
-      setReceipt(placed);
-      setStatus("succeeded");
-      clear();
-    } catch (err) {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, items: items.map(({ id, qty }) => ({ id, qty })) }),
+      });
+
+      if (res.status === 201) {
+        const placed = await res.json();
+        // remember the area so the next checkout starts with it
+        document.cookie = `addis-eats-area=${form.area}; path=/; max-age=31536000`;
+        setReceipt(placed);
+        setStatus("succeeded");
+        clear();
+      } else if (res.status === 422) {
+        // the server found problems: show them on the fields, keep every value
+        const { error } = await res.json();
+        setServerErrors(error.fieldErrors);
+        setStatus("idle");
+        const firstBad = FIELDS.find((f) => error.fieldErrors[f]);
+        if (firstBad) formRef.current.elements[firstBad].focus();
+        else setFailure(error.fieldErrors.items ?? error.message);
+      } else {
+        throw new Error("bad status");
+      }
+    } catch {
       // never clear the form on failure: every value stays where it was
-      setFailure(err.message);
+      setFailure("We could not reach the restaurant. Your order was not placed — please try again.");
       setStatus("failed");
     }
   }

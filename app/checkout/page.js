@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import Checkout from "./Checkout";
-import { AREAS } from "./validate";
+import { AREAS } from "@/lib/validate";
 
 export const metadata = { title: "Checkout · Addis Eats" };
 

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import DishActions from "./DishActions";
 
@@ -5,7 +6,14 @@ import DishActions from "./DishActions";
 export default function DishCard({ dish }) {
   return (
     <div className="dish">
-      <img className="dish-photo" src={`/images/dishes/${dish.id}.jpg`} alt={dish.name} />
+      <Image
+        className="dish-photo"
+        src={`/images/dishes/${dish.id}.jpg`}
+        alt={`A plate of ${dish.name}`}
+        width={2400}
+        height={1600}
+        sizes="160px" // the thumbnail is always 160px wide
+      />
       <h3>
         <Link href={`/menu/${dish.id}`}>{dish.name}</Link>{" "}
         {dish.spicy === true && <span className="badge">Spicy</span>}

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDish, getDishes } from "@/lib/dishes";
@@ -21,7 +22,14 @@ export default async function DishPage({ params }) {
 
   return (
     <section className="card">
-      <img className="dish-hero" src={`/images/dishes/${dish.id}.jpg`} alt={dish.name} />
+      <Image
+        className="dish-hero"
+        src={`/images/dishes/${dish.id}.jpg`}
+        alt={`A plate of ${dish.name}`}
+        width={2400}
+        height={1600}
+        sizes="(max-width: 720px) 100vw, 656px"
+      />
       <h2>
         {dish.name} {dish.spicy && <span className="badge">Spicy</span>}
       </h2>

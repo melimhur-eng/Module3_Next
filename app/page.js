@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { getDishes } from "@/lib/dishes";
 
@@ -10,7 +11,15 @@ export default async function HomePage() {
 
   return (
     <>
-      <img className="hero" src="/images/hero.jpg" alt="A plate of Ethiopian food from Addis Eats" />
+      <Image
+        className="hero"
+        src="/images/hero.jpg"
+        alt="A plate of Ethiopian food from Addis Eats"
+        width={3000}
+        height={1500}
+        // full width on phones, never wider than the 688px content column
+        sizes="(max-width: 720px) 100vw, 688px"
+      />
       <section>
         <h2>Today’s specials</h2>
         <ul className="specials">

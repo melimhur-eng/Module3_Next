@@ -49,11 +49,25 @@ Special files:
 | `app/not-found.js` | For unknown URLs, and when a page calls `notFound()` (e.g. `/menu/not-a-dish`) |
 
 **Not every file in `app/` is a route.** `app/menu/DishList.jsx`,
-`CategoryBar.jsx`, `Dish.jsx` and `Menu.jsx` sit next to the menu page, but
+`DishCard.jsx`, `CategoryBar.jsx` and `FilterShell.jsx` sit next to the menu page, but
 only files named `page.js` become URLs, so `/menu/DishList` shows "Not found".
 
 All internal navigation uses `next/link`. `CategoryBar` (in the menu sidebar)
 is a client component that changes the category with `useRouter().push()`.
+
+## Server and client components
+
+Which components run on the server and which in the browser, and why, is in
+[BOUNDARY.md](BOUNDARY.md). The menu page is now an async server component
+that awaits its dishes. Only the interactive pieces (Add, Quick view, search,
+category buttons) are client components.
+
+First Load JS for `/menu`, from `npm run build`:
+
+| | Page JS | First Load JS |
+|---|---|---|
+| Before (client `Menu` fetching with `useFetch`) | 2.06 kB | 111 kB |
+| After (server page, client leaves only) | 1.75 kB | 110 kB |
 
 ## Build output
 
@@ -65,7 +79,7 @@ Route (app)                                 Size  First Load JS  Revalidate  Exp
 ├ ○ /_not-found                            127 B         103 kB
 ├ ○ /cart                                  778 B         109 kB
 ├ ƒ /checkout                            2.15 kB         111 kB
-├ ○ /menu                                2.06 kB         111 kB          1h      1y
+├ ○ /menu                                1.75 kB         110 kB          1h      1y
 └ ● /menu/[id]                             528 B         109 kB
     ├ /menu/doro-wat
     ├ /menu/shiro
@@ -82,18 +96,17 @@ Route (app)                                 Size  First Load JS  Revalidate  Exp
 ƒ  (Dynamic)  server-rendered on demand
 ```
 
-
 ## Project structure
 
 ```
 app/
   layout.js, globals.css, page.js, not-found.js
   menu/      layout.js, page.js, loading.js, error.js,
-             Menu, CategoryBar, ViewCounter, DishList, Dish
+             FilterShell, DishList, DishCard, DishActions, CategoryBar, ViewCounter
     [id]/    page.js, AddToOrder
   cart/      page.js, Cart
   checkout/  page.js, Checkout, Field, validate.js
-components/  Header, NavLinks, CartBadge, CartHydration, Card, Modal
-lib/         dishes.js (getDishes / getDish), cartStore.js, useFetch.js, orders.js
+components/  Header, NavLinks, CartBadge, Providers, Card, Modal
+lib/         dishes.js (getDishes / getDish), cartStore.js, orders.js
 public/      dishes.json (the menu data)
 ```

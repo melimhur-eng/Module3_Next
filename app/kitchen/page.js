@@ -3,7 +3,10 @@ import { currentStatus, listAllOrders } from "@/lib/orders";
 import { getSession } from "@/lib/session";
 import { markDelivered } from "./actions";
 
-export const metadata = { title: "Kitchen · Addis Eats" };
+export const metadata = {
+  title: "Kitchen",
+  description: "Staff view of every Addis Eats order.",
+};
 
 // Staff only. Middleware made sure a cookie exists; this checks the role.
 export default async function KitchenPage() {

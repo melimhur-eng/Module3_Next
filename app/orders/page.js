@@ -5,7 +5,10 @@ import { getSession } from "@/lib/session";
 import { signOut } from "../login/actions";
 import CancelButton from "./CancelButton";
 
-export const metadata = { title: "Your orders · Addis Eats" };
+export const metadata = {
+  title: "Your orders",
+  description: "Orders you have placed with Addis Eats, and cancelling one that is not yet being prepared.",
+};
 
 export default async function OrdersPage() {
   // verified while rendering, not only in middleware

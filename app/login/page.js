@@ -1,7 +1,12 @@
 import { safeNext } from "@/lib/safeNext";
 import { signIn } from "./actions";
 
-export const metadata = { title: "Sign in · Addis Eats" };
+export const metadata = {
+  title: "Sign in",
+  description: "Sign in to Addis Eats with your phone number to order and track deliveries.",
+  // ?next=… only says where to go afterwards
+  alternates: { canonical: "/login" },
+};
 
 export default async function LoginPage({ searchParams }) {
   const params = await searchParams;

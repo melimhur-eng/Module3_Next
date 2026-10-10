@@ -6,7 +6,10 @@ import { getSession } from "@/lib/session";
 import OrderProgress from "./OrderProgress";
 import OrderStatusLine from "./OrderStatusLine";
 
-export const metadata = { title: "Track your order · Addis Eats" };
+export const metadata = {
+  title: "Track your order",
+  description: "Live status of your Addis Eats order, from the kitchen to your door.",
+};
 
 // Rendered on the server with the current status, then kept up to date in the
 // browser by polling GET /api/orders/[id] (see DATA.md).

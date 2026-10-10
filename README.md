@@ -74,7 +74,7 @@ Special files:
 | `app/layout.js` | Wraps every page: owns `<html>` and `<body>`, the header and the footer |
 | `app/menu/layout.js` | Wraps `/menu` and every dish page: the category sidebar, which survives navigation |
 | `app/menu/loading.js` | While anything in `/menu` is rendering on the server, e.g. opening a dish |
-| `app/menu/error.js` | When something in `/menu` throws. Try `/menu?crash=tibs` |
+| `app/menu/error.js` | When something in `/menu` throws. Try `/menu?crash=1` |
 | `app/not-found.js` | For unknown URLs, and when a page calls `notFound()` (e.g. `/menu/not-a-dish`) |
 
 **Not every file in `app/` is a route.** `app/menu/DishList.jsx`,
@@ -225,7 +225,7 @@ Route (app)                                 Size  First Load JS  Revalidate  Exp
 | A forged `addis-eats-user` cookie | Rejected (signature check), redirected to `/login` |
 | Cancel someone else's order | Refused inside `cancelOrder`: "You can only cancel your own orders." |
 | Slow connection | `menu/loading.js` skeleton inside the shell; the header and sidebar are already there |
-| Throw inside the menu (`/menu?crash=tibs`) | `menu/error.js`; the header, sidebar and cart survive |
+| Throw inside the menu (`/menu?crash=1`) | `menu/error.js`; the header, sidebar and cart survive |
 | `/menu/not-a-dish` | `404` with `not-found.js` |
 | Invalid phone number | The message appears beside the field (browser), and `422` from the server |
 | Search the browser JavaScript for the secret | Not found (neither the value nor the name) |

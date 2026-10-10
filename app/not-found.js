@@ -1,5 +1,10 @@
 import Link from "next/link";
 
+export const metadata = {
+  title: "Not found",
+  description: "This page or dish does not exist on Addis Eats.",
+};
+
 // Used for unknown URLs and whenever a page calls notFound()
 export default function NotFound() {
   return (

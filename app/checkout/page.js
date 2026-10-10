@@ -5,7 +5,10 @@ import { getSession } from "@/lib/session";
 import { signOut } from "../login/actions";
 import Checkout from "./Checkout";
 
-export const metadata = { title: "Checkout · Addis Eats" };
+export const metadata = {
+  title: "Checkout",
+  description: "Enter your delivery area and TeleBirr number to place your Addis Eats order.",
+};
 
 export default async function CheckoutPage() {
   // Layer 2: middleware only saw that a cookie exists; this verifies it.

@@ -2,6 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { getDishes } from "@/lib/dishes";
 
+export const metadata = {
+  alternates: { canonical: "/" },
+};
+
 // Today's specials change at most daily; regenerate the page at most every hour.
 export const revalidate = 3600;
 

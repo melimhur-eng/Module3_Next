@@ -3,6 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 import Header from "@/components/Header";
 import Providers from "@/components/Providers";
+import { SITE_URL } from "@/lib/site";
 
 // Downloaded at build time and served from this site: no request to Google,
 // no render-blocking stylesheet, and a size-matched fallback so text does not jump.
@@ -13,9 +14,21 @@ const poppins = Poppins({
   variable: "--font-poppins",
 });
 
+// Defaults for every page. Each page only supplies its own part of the title.
 export const metadata = {
-  title: "Addis Eats",
-  description: "Order great food across Addis Ababa.",
+  // makes relative image paths in social previews absolute (needed by Telegram & co.)
+  metadataBase: new URL(SITE_URL),
+  title: {
+    template: "%s · Addis Eats",
+    default: "Addis Eats — food delivery in Addis Ababa",
+  },
+  description:
+    "Order Doro Wat, Tibs, Kitfo and Shiro from Addis Eats. Delivery across Bole, Kazanchis, Megenagna and Piassa, paid with TeleBirr.",
+  openGraph: {
+    siteName: "Addis Eats",
+    type: "website",
+    locale: "en_ET",
+  },
 };
 
 // A server component: Providers is the only client piece, and it receives the

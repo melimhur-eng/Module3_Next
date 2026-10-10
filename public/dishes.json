@@ -1,9 +1,9 @@
 [
-  { "id": "doro-wat", "name": "Doro Wat", "price": 240, "category": "Main", "spicy": true },
-  { "id": "shiro", "name": "Shiro", "price": 120, "category": "Vegan", "spicy": false },
-  { "id": "tibs", "name": "Tibs", "price": 280, "category": "Grill", "spicy": false },
-  { "id": "kitfo", "name": "Kitfo", "price": 320, "category": "Main", "spicy": true },
-  { "id": "beyaynetu", "name": "Beyaynetu", "price": 180, "category": "Vegan", "spicy": false },
-  { "id": "misir-wat", "name": "Misir Wat", "price": 140, "category": "Vegan", "spicy": true },
-  { "id": "awaze-tibs", "name": "Awaze Tibs", "price": 300, "category": "Grill", "spicy": true }
+  {"id": "doro-wat", "name": "Doro Wat", "price": 240, "category": "Main", "spicy": true, "description": "Chicken slow-cooked in berbere and niter kibbeh, served with a boiled egg and injera."},
+  {"id": "shiro", "name": "Shiro", "price": 120, "category": "Vegan", "spicy": false, "description": "Smooth, gently spiced chickpea stew, served bubbling hot with injera."},
+  {"id": "tibs", "name": "Tibs", "price": 280, "category": "Grill", "spicy": false, "description": "Tender beef cubes sautéed with onion, rosemary and green chilli."},
+  {"id": "kitfo", "name": "Kitfo", "price": 320, "category": "Main", "spicy": true, "description": "Minced beef warmed in spiced butter with mitmita, served with ayib and kocho."},
+  {"id": "beyaynetu", "name": "Beyaynetu", "price": 180, "category": "Vegan", "spicy": false, "description": "A colourful fasting platter of lentils, cabbage, greens and shiro on injera."},
+  {"id": "misir-wat", "name": "Misir Wat", "price": 140, "category": "Vegan", "spicy": true, "description": "Red lentils simmered in berbere for a rich, spicy vegan stew."},
+  {"id": "awaze-tibs", "name": "Awaze Tibs", "price": 300, "category": "Grill", "spicy": true, "description": "Grilled beef tossed in fiery awaze chilli paste with onions and peppers."}
 ]

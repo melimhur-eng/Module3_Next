@@ -21,6 +21,7 @@ export default async function DishPage({ params }) {
 
   return (
     <section className="card">
+      <img className="dish-hero" src={`/images/dishes/${dish.id}.jpg`} alt={dish.name} />
       <h2>
         {dish.name} {dish.spicy && <span className="badge">Spicy</span>}
       </h2>

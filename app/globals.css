@@ -11,7 +11,7 @@
 
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
+  font-family: "Poppins", system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
 }
@@ -376,4 +376,37 @@ a {
 
 .orders form {
   margin-top: 8px;
+}
+
+.hero {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  display: block;
+}
+
+.dish-photo {
+  width: 160px;
+  height: auto;
+  border-radius: 6px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.dish-hero {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+}
+
+.help-chat {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  background: var(--accent);
+  color: var(--surface);
+  padding: 10px 16px;
+  border-radius: 999px;
+  text-decoration: none;
 }

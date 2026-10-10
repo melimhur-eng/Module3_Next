@@ -5,6 +5,7 @@ import DishActions from "./DishActions";
 export default function DishCard({ dish }) {
   return (
     <div className="dish">
+      <img className="dish-photo" src={`/images/dishes/${dish.id}.jpg`} alt={dish.name} />
       <h3>
         <Link href={`/menu/${dish.id}`}>{dish.name}</Link>{" "}
         {dish.spicy === true && <span className="badge">Spicy</span>}

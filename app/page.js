@@ -10,6 +10,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <img className="hero" src="/images/hero.jpg" alt="A plate of Ethiopian food from Addis Eats" />
       <section>
         <h2>Today’s specials</h2>
         <ul className="specials">

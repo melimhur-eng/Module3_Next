@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { selectItems, selectTotal, useCartStore } from "@/lib/cartStore";
 import Field from "./Field";
 import { AREAS, validate } from "@/lib/validate";
+import { placeOrder } from "./actions";
 
 const FIELDS = ["name", "phone", "area", "notes"];
 
@@ -15,79 +16,49 @@ export default function Checkout({ defaultArea }) {
 
   const [form, setForm] = useState({ name: "", phone: "", area: defaultArea, notes: "" });
   const [touched, setTouched] = useState({});
-  const [status, setStatus] = useState("idle"); // idle | submitting | failed | succeeded
-  const [receipt, setReceipt] = useState(null);
-  const [failure, setFailure] = useState(null);
-  const [serverErrors, setServerErrors] = useState({});
+  const [edited, setEdited] = useState({}); // fields changed since the server last answered
+  // isPending is true while the action runs: it disables the button (no double orders)
+  const [state, formAction, isPending] = useActionState(placeOrder, {});
   const formRef = useRef(null);
-  const failureRef = useRef(null);
 
-  // derived on every render, never stored
+  // the server's message for a field stops applying once that field is edited
+  const serverErrors = Object.fromEntries(
+    Object.entries(state.fieldErrors ?? {}).filter(([field]) => !edited[field])
+  );
   const errors = { ...validate(form), ...serverErrors };
-  const show = (field) => (touched[field] ? errors[field] : undefined);
+  const show = (field) => (touched[field] || serverErrors[field] ? errors[field] : undefined);
 
-  // the failure message only exists after this render, so focus it in an effect
+  // when the server answers: clear the cart on success, or focus the first bad field
   useEffect(() => {
-    if (status === "failed") failureRef.current.focus();
-  }, [status]);
+    setEdited({});
+    if (state.order) clear();
+    if (state.fieldErrors) {
+      const firstBad = FIELDS.find((f) => state.fieldErrors[f]);
+      if (firstBad) formRef.current.elements[firstBad].focus();
+    }
+  }, [state, clear]);
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
-    // the server's message for this field no longer applies once it is edited
-    setServerErrors({ ...serverErrors, [e.target.name]: undefined });
+    setEdited({ ...edited, [e.target.name]: true });
   }
 
   function handleBlur(e) {
     setTouched({ ...touched, [e.target.name]: true });
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault(); // no page reload
-    if (status === "submitting") return; // no double order
-
-    // reveal every error, then send focus to the first field that is wrong
+  // runs before the action: stop and point at the problem if the form is not valid yet
+  function handleSubmit(e) {
     setTouched({ name: true, phone: true, area: true, notes: true });
-    const firstBad = FIELDS.find((f) => errors[f]);
+    const firstBad = FIELDS.find((f) => validate(form)[f]);
     if (firstBad) {
+      e.preventDefault();
       formRef.current.elements[firstBad].focus();
-      return;
-    }
-
-    setStatus("submitting");
-    setFailure(null);
-    try {
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, items: items.map(({ id, qty }) => ({ id, qty })) }),
-      });
-
-      if (res.status === 201) {
-        const placed = await res.json();
-        // remember the area so the next checkout starts with it
-        document.cookie = `addis-eats-area=${form.area}; path=/; max-age=31536000`;
-        setReceipt(placed);
-        setStatus("succeeded");
-        clear();
-      } else if (res.status === 422) {
-        // the server found problems: show them on the fields, keep every value
-        const { error } = await res.json();
-        setServerErrors(error.fieldErrors);
-        setStatus("idle");
-        const firstBad = FIELDS.find((f) => error.fieldErrors[f]);
-        if (firstBad) formRef.current.elements[firstBad].focus();
-        else setFailure(error.fieldErrors.items ?? error.message);
-      } else {
-        throw new Error("bad status");
-      }
-    } catch {
-      // never clear the form on failure: every value stays where it was
-      setFailure("We could not reach the restaurant. Your order was not placed — please try again.");
-      setStatus("failed");
     }
   }
 
-  if (status === "succeeded") {
+  if (state.order) {
+    const receipt = state.order;
     return (
       <section className="card">
         <h2>Order placed 🎉</h2>
@@ -97,7 +68,7 @@ export default function Checkout({ defaultArea }) {
         <p>
           You will pay <strong>{receipt.total} ETB</strong> with TeleBirr ({receipt.phone}).
         </p>
-        <Link href="/menu">Order something else</Link>
+        <Link href="/orders">See recent orders</Link> · <Link href="/menu">Order something else</Link>
       </section>
     );
   }
@@ -116,13 +87,26 @@ export default function Checkout({ defaultArea }) {
     <section>
       <h2>Checkout</h2>
 
-      {failure && (
-        <p ref={failureRef} tabIndex={-1} className="error banner" role="alert">
-          ⚠ {failure}
+      {state.fieldErrors?.items && (
+        <p className="error banner" role="alert">
+          ⚠ {state.fieldErrors.items}
         </p>
       )}
 
-      <form ref={formRef} className="order-form" onSubmit={handleSubmit} noValidate>
+      <form
+        ref={formRef}
+        className="order-form"
+        action={formAction}
+        onSubmit={handleSubmit}
+        noValidate
+      >
+        {/* only ids and quantities are sent; the server looks up the prices */}
+        <input
+          type="hidden"
+          name="items"
+          value={JSON.stringify(items.map(({ id, qty }) => ({ id, qty })))}
+        />
+
         <Field id="name" label="Name" error={show("name")}>
           <input
             id="name"
@@ -182,8 +166,8 @@ export default function Checkout({ defaultArea }) {
           />
         </Field>
 
-        <button type="submit" disabled={status === "submitting"}>
-          {status === "submitting" ? "Placing order…" : `Place order · ${total} ETB`}
+        <button type="submit" disabled={isPending}>
+          {isPending ? "Placing order…" : `Place order · ${total} ETB`}
         </button>
       </form>
     </section>

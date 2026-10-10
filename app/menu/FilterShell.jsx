@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, Suspense, useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
@@ -11,11 +11,10 @@ import DishActions from "./DishActions";
 
 const FilterContext = createContext("All");
 
-// Owns the search box and reads the category from the URL. With no search
-// term, the server-rendered dish cards (children) are shown, filtered by
-// category. With a term, results come from GET /api/dishes?q=…
+// Owns the search box. With no search term, the server-rendered dish cards
+// (children) are shown, filtered by category. With a term, results come from
+// GET /api/dishes?q=…
 export default function FilterShell({ index, children }) {
-  const category = useSearchParams().get("category") ?? "All";
   const [search, setSearch] = useState("");
   const searchRef = useRef(null);
 
@@ -27,8 +26,6 @@ export default function FilterShell({ index, children }) {
   const { data: results, error, isLoading, isValidating } = useSWR(key, fetcher, {
     keepPreviousData: true,
   });
-
-  const inCategory = index.filter((d) => category === "All" || d.category === category).length;
 
   // the input only exists in the DOM after the first render, so focus it in an effect
   useEffect(() => {
@@ -49,10 +46,13 @@ export default function FilterShell({ index, children }) {
       />
 
       {search.trim() === "" ? (
-        <>
-          <FilterContext.Provider value={category}>{children}</FilterContext.Provider>
-          {inCategory === 0 && <p className="empty">No dishes in this category yet.</p>}
-        </>
+        // Reading ?category= (useSearchParams) on a static page makes React skip
+        // server rendering up to the nearest Suspense boundary. The fallback is
+        // the full list, so the server HTML always contains every dish, and the
+        // category filter is applied once the page is running in the browser.
+        <Suspense fallback={children}>
+          <CategoryFilter index={index}>{children}</CategoryFilter>
+        </Suspense>
       ) : (
         <div aria-live="polite" className={isValidating ? "updating" : undefined}>
           {error && <p className="error">⚠ Search is unavailable right now. Please try again.</p>}
@@ -75,6 +75,22 @@ export default function FilterShell({ index, children }) {
         </div>
       )}
     </section>
+  );
+}
+
+function CategoryFilter({ index, children }) {
+  const params = useSearchParams();
+  const category = params.get("category") ?? "All";
+
+  // /menu?crash=1 makes the menu throw while rendering, to show app/menu/error.js
+  if (params.has("crash")) throw new Error("Simulated crash while rendering the menu");
+
+  const inCategory = index.filter((d) => category === "All" || d.category === category).length;
+  return (
+    <>
+      <FilterContext.Provider value={category}>{children}</FilterContext.Provider>
+      {inCategory === 0 && <p className="empty">No dishes in this category yet.</p>}
+    </>
   );
 }
 

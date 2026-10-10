@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import CategoryBar from "./CategoryBar";
+import CategoryBar, { CategoryButtons } from "./CategoryBar";
 import ViewCounter from "./ViewCounter";
 
 // Wraps /menu and every /menu/[id] page. Because a layout is not re-rendered
@@ -10,7 +10,7 @@ export default function MenuLayout({ children }) {
     <div className="menu-layout">
       <aside className="sidebar">
         <h2>Categories</h2>
-        <Suspense fallback={null}>
+        <Suspense fallback={<CategoryButtons selected={null} />}>
           <CategoryBar />
         </Suspense>
         <ViewCounter />

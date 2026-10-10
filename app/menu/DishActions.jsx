@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import Modal from "@/components/Modal";
 import { useCartStore } from "@/lib/cartStore";
 
@@ -11,11 +10,6 @@ export default function DishActions({ dish }) {
   const { id, name, price, category, spicy } = dish;
   const addItem = useCartStore((s) => s.addItem);
   const [showDetails, setShowDetails] = useState(false);
-
-  // /menu?crash=tibs makes that dish throw while rendering, to show app/menu/error.js
-  if (useSearchParams().get("crash") === id) {
-    throw new Error(`Simulated crash while rendering ${name}`);
-  }
 
   return (
     <>

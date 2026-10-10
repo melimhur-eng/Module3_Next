@@ -1,29 +1,27 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { clearUser, setUser } from "@/lib/session";
+import { checkCredentials } from "@/lib/users";
+import { createSession, destroySession } from "@/lib/session";
+import { safeNext } from "@/lib/safeNext";
 
-// Only ever send people back to a page on this site ("/checkout"),
-// never to "//evil.example" or "https://…".
-function safeNext(next) {
-  return typeof next === "string" && next.startsWith("/") && !next.startsWith("//") ? next : "/";
-}
-
-// A pretend sign-in: just a name. It is a plain form action, so it works
-// even with JavaScript turned off.
+// Plain form actions, so signing in and out work even with JavaScript off.
 export async function signIn(formData) {
-  const name = String(formData.get("name") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "");
+  const password = String(formData.get("password") ?? "");
   const next = safeNext(formData.get("next"));
 
-  if (name.length < 2) {
-    redirect(`/login?error=name&next=${encodeURIComponent(next)}`);
+  const user = checkCredentials(phone, password);
+  if (!user) {
+    // the same message whether the phone or the password was wrong
+    redirect(`/login?error=1&next=${encodeURIComponent(next)}`);
   }
 
-  await setUser(name);
+  await createSession(user);
   redirect(next);
 }
 
 export async function signOut() {
-  await clearUser();
+  await destroySession();
   redirect("/");
 }

@@ -9,12 +9,12 @@ import { placeOrder } from "@/lib/orders";
 
 const FIELDS = ["name", "phone", "area", "notes"];
 
-export default function Checkout() {
+export default function Checkout({ defaultArea }) {
   const items = useCartStore(selectItems);
   const total = useCartStore(selectTotal);
   const clear = useCartStore((s) => s.clear);
 
-  const [form, setForm] = useState({ name: "", phone: "", area: "Bole", notes: "" });
+  const [form, setForm] = useState({ name: "", phone: "", area: defaultArea, notes: "" });
   const [touched, setTouched] = useState({});
   const [status, setStatus] = useState("idle"); // idle | submitting | failed | succeeded
   const [receipt, setReceipt] = useState(null);
@@ -55,6 +55,8 @@ export default function Checkout() {
     setFailure(null);
     try {
       const placed = await placeOrder({ ...form, items, total });
+      // remember the area so the next checkout starts with it
+      document.cookie = `addis-eats-area=${form.area}; path=/; max-age=31536000`;
       setReceipt(placed);
       setStatus("succeeded");
       clear();

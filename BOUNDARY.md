@@ -5,7 +5,7 @@ with `"use client"`. Server components send HTML and no JavaScript. Client
 components are sent to the browser so they can use state, effects, event
 handlers or browser-only APIs.
 
-There are 12 files with `"use client"`, each on the smallest component that
+There are 13 files with `"use client"`, each on the smallest component that
 needs it.
 
 ## Server components
@@ -20,7 +20,10 @@ needs it.
 | `app/menu/DishCard.jsx` | Plain markup: name, link, badge, price |
 | `app/menu/loading.js` | Static skeleton |
 | `app/menu/[id]/page.js` | Awaits `getDish()`, calls `notFound()` |
-| `app/cart/page.js`, `app/checkout/page.js` | Thin pages; the checkout reads a cookie with `cookies()`, a server-only API |
+| `app/cart/page.js` | Thin page around the client `Cart` |
+| `app/checkout/page.js` | The guard: reads the signed sign-in cookie and redirects; the sign-out form posts to a server action |
+| `app/login/page.js` | A plain `<form action={signIn}>`, which works without JavaScript |
+| `app/orders/page.js` | Reads the order store and renders the list |
 | `app/not-found.js` | Static message |
 | `components/Header.jsx` | Title and layout; its interactive parts are client children |
 | `components/Card.jsx` | A styled wrapper around `children` |
@@ -40,10 +43,20 @@ needs it.
 | `app/menu/error.js` | Error boundaries catch errors thrown in the browser, so they must be client components; it also uses `reset` from an `onClick` |
 | `app/menu/[id]/AddToOrder.jsx` | Adds to the cart store on click |
 | `app/cart/Cart.jsx` | Reads the store; remove / clear buttons |
-| `app/checkout/Checkout.jsx` | The controlled form: state, touched, submit |
+| `app/checkout/Checkout.jsx` | The controlled form: state, touched, `useActionState` |
+| `app/orders/CancelButton.jsx` | `useTransition` pending state and the error message from `cancelOrder` |
 
 `lib/cartStore.js` is a plain module with no directive. It's only imported by
 client components.
+
+## Server-only code
+
+`"use server"` files (`app/checkout/actions.js`, `app/orders/actions.js`,
+`app/login/actions.js`) run only on the server. The browser gets a reference it
+can call, never the code. `lib/session.js` imports `server-only`, so importing
+it from a client component would fail the build, and `SESSION_SECRET` can't
+leak into the bundle. A production build was searched for the secret's value
+and for `SESSION_SECRET`, and neither appears.
 
 ## Rules followed
 

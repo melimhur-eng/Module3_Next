@@ -1,7 +1,13 @@
 # Addis Eats (Next.js)
 
-Addis Eats, a food-ordering frontend for Addis Ababa, rebuilt on **Next.js
-(App Router)** for CodeOps Module 3, week 8.
+Addis Eats, a food-ordering app for Addis Ababa, rebuilt on **Next.js (App
+Router)** for CodeOps Module 3, week 8. It has the same features as the Day 35
+React version, plus file-based routing, nested layouts, a deliberate rendering
+strategy per route, server components fetching their own data, and its own
+endpoints and server actions.
+
+- **[STRATEGY.md](STRATEGY.md)**: how every route is rendered, and why
+- **[BOUNDARY.md](BOUNDARY.md)**: which components run on the server or the client, and why
 
 The components from the React version move across almost unchanged. What
 changes is the routing: every screen is now a folder inside `app/`, and the
@@ -36,7 +42,8 @@ npm start
 | `/menu?category=Vegan` | `app/menu/page.js` | The same page, filtered by the query string |
 | `/menu/[id]` (e.g. `/menu/kitfo`) | `app/menu/[id]/page.js` | One dish. `id` comes from the `params` prop, and an unknown id calls `notFound()` |
 | `/cart` | `app/cart/page.js` | Order lines and the running ETB total |
-| `/checkout` | `app/checkout/page.js` | The validated checkout form |
+| `/checkout` | `app/checkout/page.js` | The validated checkout form. **Guarded**: signed-out visitors are sent to `/login` and back afterwards |
+| `/login` | `app/login/page.js` | Pretend sign-in (just a name), stored in a signed, httpOnly cookie |
 | `/orders` | `app/orders/page.js` | Recent orders (cached, refreshed after each order or cancellation) |
 | any unknown URL | `app/not-found.js` | "Not found" with links back |
 
@@ -110,24 +117,25 @@ First Load JS for `/menu`, from `npm run build`:
 
 ## Build output
 
-`npm run build`:
+`npm run build`. Every marker matches STRATEGY.md:
 
 ```
 Route (app)                                 Size  First Load JS  Revalidate  Expire
 ┌ ○ /                                      165 B         106 kB          1h      1y
-├ ○ /_not-found                            135 B         103 kB
-├ ƒ /api/dishes                            135 B         103 kB
-├ ƒ /api/dishes/[id]                       135 B         103 kB
-├ ƒ /api/orders                            135 B         103 kB
+├ ○ /_not-found                            138 B         103 kB
+├ ƒ /api/dishes                            138 B         103 kB
+├ ƒ /api/dishes/[id]                       138 B         103 kB
+├ ƒ /api/orders                            138 B         103 kB
 ├ ○ /cart                                  778 B         109 kB
-├ ƒ /checkout                            2.29 kB         111 kB
+├ ƒ /checkout                            2.34 kB         111 kB
+├ ƒ /login                                 138 B         103 kB
 ├ ○ /menu                                1.75 kB         110 kB          1h      1y
 ├ ● /menu/[id]                             528 B         109 kB
 ├   ├ /menu/doro-wat
 ├   ├ /menu/shiro
 ├   ├ /menu/tibs
 ├   └ [+4 more paths]
-└ ○ /orders                                677 B         107 kB
+└ ○ /orders                                670 B         107 kB
 + First Load JS shared by all             103 kB
   ├ chunks/255-ce8c7c75002f810b.js       46.5 kB
   ├ chunks/4bd1b696-c023c6e3521b1417.js  54.2 kB
@@ -138,6 +146,34 @@ Route (app)                                 Size  First Load JS  Revalidate  Exp
 ●  (SSG)      prerendered as static HTML (uses generateStaticParams)
 ƒ  (Dynamic)  server-rendered on demand
 ```
+
+## Verification (on the production build: `npm run build && npm start`)
+
+| Check | Result |
+|---|---|
+| `curl -i /api/dishes/not-a-dish` | `404` and `{ "error": { "message": … } }` |
+| `curl -i -X POST /api/orders -d '{"name":"Almaz","phone":"0912"}'` | `422` with `fieldErrors.phone` (plus `area` and `items`) |
+| Open `/checkout` signed out | `307` redirect to `/login?next=/checkout`, then back after signing in |
+| A forged `addis-eats-user` cookie | Rejected (signature check), redirected to `/login` |
+| Cancel someone else's order | Refused inside `cancelOrder`: "You can only cancel your own orders." |
+| Slow connection | `menu/loading.js` skeleton inside the shell; the header and sidebar are already there |
+| Throw inside the menu (`/menu?crash=tibs`) | `menu/error.js`; the header, sidebar and cart survive |
+| `/menu/not-a-dish` | `404` with `not-found.js` |
+| Invalid phone number | The message appears beside the field (browser), and `422` from the server |
+| Search the browser JavaScript for the secret | Not found (neither the value nor the name) |
+| JavaScript disabled | Sign-in and sign-out are plain `<form action>` server actions and work. The checkout form also posts to a server action, but the cart lives in the browser's `localStorage`, so without JavaScript there are no dishes to order |
+
+### Bundle: Day 35 (React + Vite) vs Day 40 (Next.js)
+
+| | JavaScript for the menu screen (gzipped) | How the dishes arrive |
+|---|---|---|
+| Day 35 Vite build | 60.2 kB (one bundle for the whole app) | A second request to `dishes.json` after the JavaScript runs |
+| Day 40 Next.js `/menu` | 110 kB First Load JS (103 kB of it is React + Next.js, shared by every page) | Already in the HTML of the first response |
+
+The Next.js runtime is bigger than a bare Vite app. What the server components
+change is what the browser has to do: the dish list is plain HTML, and the
+menu page's own JavaScript is 1.75 kB, holding only the buttons and the
+search box.
 
 ## Project structure
 
@@ -150,6 +186,7 @@ app/
   cart/      page.js, Cart
   checkout/  page.js, Checkout, Field, actions.js (placeOrder)
   orders/    page.js, CancelButton, actions.js (cancelOrder)
+  login/     page.js, actions.js (signIn, signOut)
   api/
     dishes/route.js, dishes/[id]/route.js, orders/route.js
 components/  Header, NavLinks, CartBadge, Providers, Card, Modal

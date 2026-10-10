@@ -8,6 +8,7 @@ endpoints and server actions.
 
 - **[STRATEGY.md](STRATEGY.md)**: how every route is rendered, and why
 - **[BOUNDARY.md](BOUNDARY.md)**: which components run on the server or the client, and why
+- **[DATA.md](DATA.md)**: every client-side query, its key and refresh rule
 
 The components from the React version move across almost unchanged. What
 changes is the routing: every screen is now a folder inside `app/`, and the
@@ -45,6 +46,8 @@ npm start
 | `/checkout` | `app/checkout/page.js` | The validated checkout form. **Guarded**: signed-out visitors are sent to `/login` and back afterwards |
 | `/login` | `app/login/page.js` | Pretend sign-in (just a name), stored in a signed, httpOnly cookie |
 | `/orders` | `app/orders/page.js` | Recent orders (cached, refreshed after each order or cancellation) |
+| `/orders/[id]` | `app/orders/[id]/page.js` | Track one order: server-rendered, then polled every 5 s |
+| `/browse?page=2` | `app/browse/page.js` | Every dish, 3 per page; the page number is in the URL |
 | any unknown URL | `app/not-found.js` | "Not found" with links back |
 
 How each route is rendered (static, revalidated, prebuilt or dynamic) and why
@@ -77,6 +80,9 @@ Every error response has the same shape:
 |---|---|---|
 | GET | `/api/dishes` | **200**: every dish |
 | GET | `/api/dishes?category=Vegan` | **200**: only that category (an empty array if none) |
+| GET | `/api/dishes?q=tibs` | **200**: dishes whose name contains the term (used by the menu search) |
+| GET | `/api/dishes?page=2&limit=3` | **200**: `{ items, page, totalPages, total }` (used by `/browse`) |
+| GET | `/api/orders/[id]` | **200**: the order's public details and live status (no name or phone) · **404**: unknown id. Polled by the tracking page |
 | GET | `/api/dishes/[id]` | **200**: the dish · **404**: no dish with that id |
 | POST | `/api/orders` | **201**: the created order · **400**: the body is not JSON · **422**: validation failed, with `fieldErrors` per field |
 
@@ -100,6 +106,23 @@ curl -X POST http://localhost:3000/api/orders -H "Content-Type: application/json
 
 Orders are kept in memory (a stand-in for a database), so they disappear when
 the server restarts.
+
+## Live data in the browser (SWR)
+
+Three things are fetched from the browser with SWR, all through one shared
+fetcher. Details are in [DATA.md](DATA.md).
+
+- **Order tracking** (`/orders/[id]`): the first paint comes from the server
+  (`fallbackData`), then it polls every 5 s until the order is delivered.
+- **Menu search**: debounced, with a `null` key when the box is empty and
+  `keepPreviousData` so results never flash empty.
+- **Paging** (`/browse?page=2`): the page number lives in the URL.
+
+**What the Network tab shows while typing:** typing "tibs" in the menu search
+sends **one** request, `GET /api/dishes?q=tibs`, about 300 ms after the last
+key, instead of one per letter. Clearing the box sends nothing, and the
+server-rendered list comes back. Typing the same term again within a couple
+of seconds is served from SWR's cache.
 
 ## Server and client components
 
@@ -186,11 +209,14 @@ app/
   cart/      page.js, Cart
   checkout/  page.js, Checkout, Field, actions.js (placeOrder)
   orders/    page.js, CancelButton, actions.js (cancelOrder)
+    [id]/    page.js, OrderStatusLine, OrderProgress (SWR polling)
+  browse/    page.js, PagedDishes (SWR paging)
   login/     page.js, actions.js (signIn, signOut)
   api/
-    dishes/route.js, dishes/[id]/route.js, orders/route.js
+    dishes/route.js, dishes/[id]/route.js, orders/route.js, orders/[id]/route.js
 components/  Header, NavLinks, CartBadge, Providers, Card, Modal
 lib/         dishes.js, orders.js (order store), validate.js (shared rules),
-             session.js (signed cookie, server-only), http.js, cartStore.js
+             session.js (signed cookie, server-only), http.js, cartStore.js,
+             fetcher.js, useOrder.js, useDebounce.js
 public/      dishes.json (the menu data)
 ```

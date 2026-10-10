@@ -5,7 +5,7 @@ with `"use client"`. Server components send HTML and no JavaScript. Client
 components are sent to the browser so they can use state, effects, event
 handlers or browser-only APIs.
 
-There are 13 files with `"use client"`, each on the smallest component that
+There are 16 files with `"use client"` (not counting the two client hooks in `lib/`), each on the smallest component that
 needs it.
 
 ## Server components
@@ -24,6 +24,8 @@ needs it.
 | `app/checkout/page.js` | The guard: reads the signed sign-in cookie and redirects; the sign-out form posts to a server action |
 | `app/login/page.js` | A plain `<form action={signIn}>`, which works without JavaScript |
 | `app/orders/page.js` | Reads the order store and renders the list |
+| `app/orders/[id]/page.js` | Reads the order and passes it to the polling components as `fallbackData` |
+| `app/browse/page.js` | A static heading and a Suspense boundary |
 | `app/not-found.js` | Static message |
 | `components/Header.jsx` | Title and layout; its interactive parts are client children |
 | `components/Card.jsx` | A styled wrapper around `children` |
@@ -36,7 +38,7 @@ needs it.
 | `components/NavLinks.jsx` | `usePathname()` to highlight the current page |
 | `components/CartBadge.jsx` | Subscribes to the cart store |
 | `components/Modal.jsx` | `createPortal`, key listeners, focus management |
-| `app/menu/FilterShell.jsx` | Search state, `useRef` focus, `useSearchParams()`; shares the filter with `FilterItem` through context |
+| `app/menu/FilterShell.jsx` | Search state, debounced SWR search, `useRef` focus, `useSearchParams()`; shares the category with `FilterItem` through context |
 | `app/menu/DishActions.jsx` | Add button (store) and the quick-view modal (state) |
 | `app/menu/CategoryBar.jsx` | `useRouter().push()` and `useSearchParams()` |
 | `app/menu/ViewCounter.jsx` | State and an effect on `usePathname()` |
@@ -44,6 +46,8 @@ needs it.
 | `app/menu/[id]/AddToOrder.jsx` | Adds to the cart store on click |
 | `app/cart/Cart.jsx` | Reads the store; remove / clear buttons |
 | `app/checkout/Checkout.jsx` | The controlled form: state, touched, `useActionState` |
+| `app/orders/[id]/OrderStatusLine.jsx`, `OrderProgress.jsx` | Poll the order with SWR (`useOrder`) |
+| `app/browse/PagedDishes.jsx` | SWR paging and `useSearchParams()` |
 | `app/orders/CancelButton.jsx` | `useTransition` pending state and the error message from `cancelOrder` |
 
 `lib/cartStore.js` is a plain module with no directive. It's only imported by

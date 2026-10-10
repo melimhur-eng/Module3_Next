@@ -9,6 +9,8 @@
 | `/checkout` | Dynamic | ƒ | It checks the sign-in cookie (`getUser()`, redirecting to `/login` if missing) and reads `addis-eats-area` to pre-fill the form, so it depends on who is asking. |
 | `/login` | Dynamic | ƒ | It reads `searchParams` (`next`, `error`) to know where to send you back. |
 | `/orders` | Static, revalidated on demand | ○ | The list only changes when an order is placed or cancelled, so those actions call `revalidatePath("/orders")` instead of rendering on every visit. |
+| `/orders/[id]` | Dynamic, then polled in the browser | ƒ | Orders are created at run time, so the page is rendered on request with the current status; SWR keeps it fresh afterwards (DATA.md). |
+| `/browse` | Static shell, data fetched in the browser | ○ | The shell is the same for everyone; the page of dishes depends on `?page=`, which SWR fetches client-side. |
 | `/api/*` | Dynamic | ƒ | Route handlers read the request (query string, body, cookies). |
 | not found | Static | ○ | The same message for everyone. |
 

@@ -7,9 +7,10 @@ export default function Header() {
     <>
       <header className="site-header">
         <div>
-          <h1>
+          {/* the site name, not the page's subject: each page has its own h1 */}
+          <p className="logo">
             <Link href="/">Addis Eats</Link>
-          </h1>
+          </p>
           <p>Order great food across Addis.</p>
         </div>
         <CartBadge />

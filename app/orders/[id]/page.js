@@ -23,7 +23,7 @@ export default async function OrderPage({ params }) {
 
   return (
     <section className="card">
-      <h2>Order {initial.id}</h2>
+      <h1>Order {initial.id}</h1>
       <OrderStatusLine id={id} fallbackData={initial} />
       <OrderProgress id={id} fallbackData={initial} />
       <ul className="cart-lines">

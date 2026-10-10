@@ -30,9 +30,9 @@ export default async function DishPage({ params }) {
         height={1600}
         sizes="(max-width: 720px) 100vw, 656px"
       />
-      <h2>
+      <h1>
         {dish.name} {dish.spicy && <span className="badge">Spicy</span>}
-      </h2>
+      </h1>
       <p>Category: {dish.category}</p>
       <p className="total">{dish.price} ETB</p>
       <AddToOrder dish={dish} /> <Link href="/menu">Back to the menu</Link>

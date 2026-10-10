@@ -21,7 +21,7 @@ export default async function OrdersPage() {
         Signed in as <strong>{user.name}</strong> <button type="submit">Sign out</button>
         {user.role === "staff" && <Link href="/kitchen">Kitchen →</Link>}
       </form>
-      <h2>Your orders</h2>
+      <h1>Your orders</h1>
       {orders.length === 0 ? (
         <>
           <p className="empty">You have not placed any orders yet.</p>

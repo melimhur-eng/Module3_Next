@@ -12,7 +12,7 @@ export default function Cart() {
   if (items.length === 0) {
     return (
       <section>
-        <h2>Your order</h2>
+        <h1>Your order</h1>
         <p className="empty">Your cart is empty.</p>
         <Link href="/menu">Browse the menu</Link>
       </section>
@@ -21,7 +21,7 @@ export default function Cart() {
 
   return (
     <section className="card">
-      <h2>Your order</h2>
+      <h1>Your order</h1>
       <ul className="cart-lines">
         {items.map((i) => (
           <li key={i.id}>

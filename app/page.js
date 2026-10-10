@@ -22,6 +22,7 @@ export default async function HomePage() {
         // the largest thing above the fold: fetch it first instead of lazily
         priority
       />
+      <h1>Food delivery across Addis Ababa</h1>
       <section>
         <h2>Today’s specials</h2>
         <ul className="specials">

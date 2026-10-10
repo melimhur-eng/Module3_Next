@@ -9,7 +9,7 @@ export default async function LoginPage({ searchParams }) {
 
   return (
     <form action={signIn} className="order-form">
-      <h2>Sign in</h2>
+      <h1>Sign in</h1>
       {params.error && (
         <p className="error" role="alert">
           ⚠ That phone number and password do not match an account.

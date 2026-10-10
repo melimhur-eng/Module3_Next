@@ -7,7 +7,7 @@ export const metadata = { title: "All dishes · Addis Eats" };
 export default function BrowsePage() {
   return (
     <section>
-      <h2>All dishes</h2>
+      <h1>All dishes</h1>
       <Suspense fallback={<p className="loading">Loading dishes…</p>}>
         <PagedDishes />
       </Suspense>

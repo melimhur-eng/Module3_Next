@@ -61,7 +61,7 @@ export default function Checkout({ defaultArea, defaultName }) {
     const receipt = state.order;
     return (
       <section className="card">
-        <h2>Order placed 🎉</h2>
+        <h1>Order placed 🎉</h1>
         <p>
           Order <strong>{receipt.id}</strong> is on its way to {receipt.area}.
         </p>
@@ -77,7 +77,7 @@ export default function Checkout({ defaultArea, defaultName }) {
   if (items.length === 0) {
     return (
       <section>
-        <h2>Checkout</h2>
+        <h1>Checkout</h1>
         <p className="empty">Your cart is empty.</p>
         <Link href="/menu">Browse the menu</Link>
       </section>
@@ -86,7 +86,7 @@ export default function Checkout({ defaultArea, defaultName }) {
 
   return (
     <section>
-      <h2>Checkout</h2>
+      <h1>Checkout</h1>
 
       {(state.formError || state.fieldErrors?.items) && (
         <p className="error banner" role="alert">

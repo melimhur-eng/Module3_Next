@@ -13,7 +13,7 @@ export default async function KitchenPage() {
   if (user.role !== "staff") {
     return (
       <section>
-        <h2>Staff only</h2>
+        <h1>Staff only</h1>
         <p>This page is for the Addis Eats kitchen team.</p>
       </section>
     );
@@ -23,7 +23,7 @@ export default async function KitchenPage() {
 
   return (
     <section>
-      <h2>Kitchen — all orders</h2>
+      <h1>Kitchen — all orders</h1>
       {orders.length === 0 && <p className="empty">No orders yet.</p>}
       <ul className="orders">
         {orders.map((o) => {

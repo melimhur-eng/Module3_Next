@@ -37,7 +37,7 @@ export default function FilterShell({ index, children }) {
 
   return (
     <section>
-      <h2>Menu</h2>
+      <h1>Menu</h1>
       <input
         ref={searchRef}
         className="search"

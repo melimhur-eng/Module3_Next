@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import CategoryBar from "./CategoryBar";
 import DishList from "./DishList";
 import { useCartStore } from "@/lib/cartStore";
 import { useFetch } from "@/lib/useFetch";
@@ -38,7 +37,6 @@ export default function Menu() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
-      <CategoryBar selected={category} />
       <DishList dishes={shown} loading={loading} error={error} onAdd={addItem} />
     </section>
   );

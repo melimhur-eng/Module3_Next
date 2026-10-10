@@ -1,12 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const categories = ["All", "Main", "Vegan", "Grill", "Dessert"];
 
 // Not a route: only files named page.js inside app/ become URLs.
-export default function CategoryBar({ selected }) {
+export default function CategoryBar() {
   const router = useRouter();
+  const pathname = usePathname();
+  const selected = useSearchParams().get("category") ?? "All";
 
   function select(c) {
     router.push(c === "All" ? "/menu" : `/menu?category=${c}`);
@@ -17,7 +19,8 @@ export default function CategoryBar({ selected }) {
       {categories.map((c) => (
         <button
           key={c}
-          className={c === selected ? "chip active" : "chip"}
+          // on a dish page no category is "selected"
+          className={pathname === "/menu" && c === selected ? "chip active" : "chip"}
           onClick={() => select(c)}
         >
           {c}

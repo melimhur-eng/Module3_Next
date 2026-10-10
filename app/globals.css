@@ -286,3 +286,34 @@ a {
 .specials {
   padding-left: 20px;
 }
+
+.menu-layout {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 24px;
+}
+
+.sidebar h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+.sidebar .chips {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  .menu-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar .chips {
+    flex-direction: row;
+  }
+}

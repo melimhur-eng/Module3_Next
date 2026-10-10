@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { getDishes } from "@/lib/dishes";
 
+// Today's specials change at most daily; regenerate the page at most every hour.
+export const revalidate = 3600;
+
 export default async function HomePage() {
   const dishes = await getDishes();
   const specials = dishes.filter((d) => d.spicy).slice(0, 3);

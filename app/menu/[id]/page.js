@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getDish } from "@/lib/dishes";
+import { getDish, getDishes } from "@/lib/dishes";
 import AddToOrder from "./AddToOrder";
+
+// Every dish is known at build time, so one HTML page is generated per dish.
+export async function generateStaticParams() {
+  const dishes = await getDishes();
+  return dishes.map((d) => ({ id: d.id }));
+}
 
 // params arrives as a prop (in Next 15 it is a promise, so it is awaited)
 export default async function DishPage({ params }) {

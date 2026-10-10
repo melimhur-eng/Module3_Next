@@ -373,3 +373,7 @@ a {
   background: var(--accent);
   color: var(--surface);
 }
+
+.orders form {
+  margin-top: 8px;
+}

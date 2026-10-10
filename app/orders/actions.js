@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getOrder, setOrderStatus } from "@/lib/orders";
+import { currentStatus, getOrder, setOrderStatus } from "@/lib/orders";
 import { getCustomerId } from "@/lib/session";
 
 // A server action is a public endpoint: anyone can call it with any id, even
@@ -15,9 +15,12 @@ export async function cancelOrder(orderId) {
   const order = getOrder(orderId);
   if (!order) return { error: "That order does not exist." };
   if (order.customerId !== customerId) return { error: "You can only cancel your own orders." };
-  if (order.status !== "placed") return { error: "This order is already cancelled." };
+  if (currentStatus(order) !== "placed") {
+    return { error: "This order is already being prepared and can no longer be cancelled." };
+  }
 
   setOrderStatus(orderId, "cancelled");
   revalidatePath("/orders");
+  revalidatePath(`/orders/${orderId}`);
   return { ok: true };
 }

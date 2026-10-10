@@ -68,7 +68,8 @@ export default function Checkout({ defaultArea, defaultName }) {
         <p>
           You will pay <strong>{receipt.total} ETB</strong> with TeleBirr ({receipt.phone}).
         </p>
-        <Link href="/orders">See recent orders</Link> · <Link href="/menu">Order something else</Link>
+        <Link href={`/orders/${receipt.id}`}>Track your order</Link> ·{" "}
+        <Link href="/menu">Order something else</Link>
       </section>
     );
   }

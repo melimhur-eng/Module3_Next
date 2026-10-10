@@ -333,3 +333,43 @@ a {
   gap: 8px;
   color: var(--muted);
 }
+
+.progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  padding-left: 20px;
+  color: var(--muted);
+}
+
+.progress .done {
+  color: var(--success);
+  font-weight: bold;
+}
+
+/* the previous results stay visible, just dimmed, while new ones load */
+.updating {
+  opacity: 0.6;
+}
+
+.paged {
+  list-style: none;
+  padding: 0;
+}
+
+.pager {
+  display: flex;
+  gap: 8px;
+}
+
+.pager a {
+  padding: 4px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+.pager a.active {
+  background: var(--accent);
+  color: var(--surface);
+}

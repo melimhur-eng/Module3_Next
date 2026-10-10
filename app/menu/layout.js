@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import CategoryBar from "./CategoryBar";
 import ViewCounter from "./ViewCounter";
 
@@ -13,6 +14,9 @@ export default function MenuLayout({ children }) {
           <CategoryBar />
         </Suspense>
         <ViewCounter />
+        <p>
+          <Link href="/browse">Browse all dishes, page by page →</Link>
+        </p>
       </aside>
       <div>{children}</div>
     </div>

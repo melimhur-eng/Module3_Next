@@ -1,20 +1,17 @@
 import Card from "@/components/Card";
-import Dish from "./Dish";
+import DishCard from "./DishCard";
+import { FilterItem } from "./FilterShell";
 
-// Not a route: only files named page.js inside app/ become URLs.
-export default function DishList({ dishes, loading, error, onAdd }) {
-  if (loading) return <p className="loading">Loading the menu…</p>;
-  if (error) return <p className="error">{error}</p>;
-  if (dishes.length === 0) {
-    return <p className="empty">No dishes in this category yet.</p>;
-  }
-
+// Server component. Not a route: only files named page.js become URLs.
+export default function DishList({ dishes }) {
   return (
     <div>
       {dishes.map((d) => (
-        <Card key={d.id}>
-          <Dish dish={d} onAdd={onAdd} />
-        </Card>
+        <FilterItem key={d.id} name={d.name} category={d.category}>
+          <Card>
+            <DishCard dish={d} />
+          </Card>
+        </FilterItem>
       ))}
     </div>
   );

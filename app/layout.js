@@ -1,20 +1,23 @@
 import "./globals.css";
 import Header from "@/components/Header";
-import CartHydration from "@/components/CartHydration";
+import Providers from "@/components/Providers";
 
 export const metadata = {
   title: "Addis Eats",
   description: "Order great food across Addis Ababa.",
 };
 
+// A server component: Providers is the only client piece, and it receives the
+// rest of the page as children.
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <CartHydration />
-        <Header />
-        <main>{children}</main>
-        <footer className="footer">© Addis Eats · Bole, Addis Ababa</footer>
+        <Providers>
+          <Header />
+          <main>{children}</main>
+          <footer className="footer">© Addis Eats · Bole, Addis Ababa</footer>
+        </Providers>
       </body>
     </html>
   );

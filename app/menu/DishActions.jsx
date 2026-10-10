@@ -4,9 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Modal from "@/components/Modal";
+import { useCartStore } from "@/lib/cartStore";
 
-export default function Dish({ dish, onAdd }) {
+// The only interactive part of a dish card: the Add button and the quick view.
+export default function DishActions({ dish }) {
   const { id, name, price, category, spicy } = dish;
+  const addItem = useCartStore((s) => s.addItem);
   const [showDetails, setShowDetails] = useState(false);
 
   // /menu?crash=tibs makes that dish throw while rendering, to show app/menu/error.js
@@ -15,15 +18,9 @@ export default function Dish({ dish, onAdd }) {
   }
 
   return (
-    <div className="dish">
-      <h3>
-        <Link href={`/menu/${id}`}>{name}</Link>{" "}
-        {spicy === true && <span className="badge">Spicy</span>}
-      </h3>
-      <p>{price} ETB</p>
-      <button onClick={() => onAdd(dish)}>Add</button>{" "}
+    <>
+      <button onClick={() => addItem(dish)}>Add</button>{" "}
       <button onClick={() => setShowDetails(true)}>Quick view</button>
-
       {showDetails && (
         <Modal title={name} onClose={() => setShowDetails(false)}>
           <p>Category: {category}</p>
@@ -31,7 +28,7 @@ export default function Dish({ dish, onAdd }) {
           <p className="total">{price} ETB</p>
           <button
             onClick={() => {
-              onAdd(dish);
+              addItem(dish);
               setShowDetails(false);
             }}
           >
@@ -40,6 +37,6 @@ export default function Dish({ dish, onAdd }) {
           <Link href={`/menu/${id}`}>Open the full page</Link>
         </Modal>
       )}
-    </div>
+    </>
   );
 }

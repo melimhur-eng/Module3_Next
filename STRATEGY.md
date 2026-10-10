@@ -7,6 +7,8 @@
 | `/menu/[id]` | Static, one page per dish (`generateStaticParams`) | ● | Every dish is known at build time, so each page is plain HTML. |
 | `/cart` | Static shell | ○ | The cart lives in the visitor's browser (localStorage), so the server sends the same empty shell to everyone. |
 | `/checkout` | Dynamic | ƒ | It reads the `addis-eats-area` cookie with `cookies()` to pre-fill the delivery area, so it depends on the request. |
+| `/orders` | Static, revalidated on demand | ○ | The list only changes when an order is placed or cancelled, so those actions call `revalidatePath("/orders")` instead of rendering on every visit. |
+| `/api/*` | Dynamic | ƒ | Route handlers read the request (query string, body, cookies). |
 | not found | Static | ○ | The same message for everyone. |
 
 ## Layouts

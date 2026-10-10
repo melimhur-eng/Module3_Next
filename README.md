@@ -13,8 +13,12 @@ You need Node.js 18.18 or newer.
 
 ```bash
 npm install
+cp .env.example .env.local   # then put a long random string in SESSION_SECRET
 npm run dev
 ```
+
+`SESSION_SECRET` signs the customer cookie that proves who placed an order.
+`.env.local` is ignored by git, and the value is only read on the server.
 
 Then open http://localhost:3000. For a production build:
 
@@ -33,6 +37,7 @@ npm start
 | `/menu/[id]` (e.g. `/menu/kitfo`) | `app/menu/[id]/page.js` | One dish. `id` comes from the `params` prop, and an unknown id calls `notFound()` |
 | `/cart` | `app/cart/page.js` | Order lines and the running ETB total |
 | `/checkout` | `app/checkout/page.js` | The validated checkout form |
+| `/orders` | `app/orders/page.js` | Recent orders (cached, refreshed after each order or cancellation) |
 | any unknown URL | `app/not-found.js` | "Not found" with links back |
 
 How each route is rendered (static, revalidated, prebuilt or dynamic) and why
@@ -55,6 +60,40 @@ only files named `page.js` become URLs, so `/menu/DishList` shows "Not found".
 All internal navigation uses `next/link`. `CategoryBar` (in the menu sidebar)
 is a client component that changes the category with `useRouter().push()`.
 
+## API
+
+Every error response has the same shape:
+`{ "error": { "message": "...", "fieldErrors": { ... } } }`
+(`fieldErrors` only appears for validation errors).
+
+| Method | Endpoint | Status codes |
+|---|---|---|
+| GET | `/api/dishes` | **200**: every dish |
+| GET | `/api/dishes?category=Vegan` | **200**: only that category (an empty array if none) |
+| GET | `/api/dishes/[id]` | **200**: the dish · **404**: no dish with that id |
+| POST | `/api/orders` | **201**: the created order · **400**: the body is not JSON · **422**: validation failed, with `fieldErrors` per field |
+
+`POST /api/orders` takes `{ name, phone, area, notes?, items: [{ id, qty }] }`.
+It validates with the **same `lib/validate.js` rules as the checkout form**,
+and the server looks up every price itself, so a request can't change what an
+order costs.
+
+```bash
+curl -X POST http://localhost:3000/api/orders -H "Content-Type: application/json" \
+  -d '{"name":"Almaz","phone":"12345","area":"Bole","items":[{"id":"shiro","qty":1}]}'
+# 422 {"error":{"message":"Some details need fixing.","fieldErrors":{"phone":"Use 09XXXXXXXX or +2519XXXXXXXX."}}}
+```
+
+### Server actions
+
+| Action | File | What it does |
+|---|---|---|
+| `placeOrder` | `app/checkout/actions.js` | The checkout form submits straight to it (no `fetch`). `useActionState` provides the pending flag that disables the button. It returns `fieldErrors` or the order, and calls `revalidatePath("/orders")` |
+| `cancelOrder` | `app/orders/actions.js` | Checks **on the server** that there is a session cookie and that it belongs to the person who placed the order. Hiding the button would not be enough, because an action can be called with any id |
+
+Orders are kept in memory (a stand-in for a database), so they disappear when
+the server restarts.
+
 ## Server and client components
 
 Which components run on the server and which in the browser, and why, is in
@@ -76,15 +115,19 @@ First Load JS for `/menu`, from `npm run build`:
 ```
 Route (app)                                 Size  First Load JS  Revalidate  Expire
 ┌ ○ /                                      165 B         106 kB          1h      1y
-├ ○ /_not-found                            127 B         103 kB
+├ ○ /_not-found                            135 B         103 kB
+├ ƒ /api/dishes                            135 B         103 kB
+├ ƒ /api/dishes/[id]                       135 B         103 kB
+├ ƒ /api/orders                            135 B         103 kB
 ├ ○ /cart                                  778 B         109 kB
-├ ƒ /checkout                            2.15 kB         111 kB
+├ ƒ /checkout                            2.29 kB         111 kB
 ├ ○ /menu                                1.75 kB         110 kB          1h      1y
-└ ● /menu/[id]                             528 B         109 kB
-    ├ /menu/doro-wat
-    ├ /menu/shiro
-    ├ /menu/tibs
-    └ [+4 more paths]
+├ ● /menu/[id]                             528 B         109 kB
+├   ├ /menu/doro-wat
+├   ├ /menu/shiro
+├   ├ /menu/tibs
+├   └ [+4 more paths]
+└ ○ /orders                                677 B         107 kB
 + First Load JS shared by all             103 kB
   ├ chunks/255-ce8c7c75002f810b.js       46.5 kB
   ├ chunks/4bd1b696-c023c6e3521b1417.js  54.2 kB
@@ -105,8 +148,12 @@ app/
              FilterShell, DishList, DishCard, DishActions, CategoryBar, ViewCounter
     [id]/    page.js, AddToOrder
   cart/      page.js, Cart
-  checkout/  page.js, Checkout, Field, validate.js
+  checkout/  page.js, Checkout, Field, actions.js (placeOrder)
+  orders/    page.js, CancelButton, actions.js (cancelOrder)
+  api/
+    dishes/route.js, dishes/[id]/route.js, orders/route.js
 components/  Header, NavLinks, CartBadge, Providers, Card, Modal
-lib/         dishes.js (getDishes / getDish), cartStore.js, orders.js
+lib/         dishes.js, orders.js (order store), validate.js (shared rules),
+             session.js (signed cookie, server-only), http.js, cartStore.js
 public/      dishes.json (the menu data)
 ```

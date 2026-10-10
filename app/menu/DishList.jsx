@@ -6,10 +6,11 @@ import { FilterItem } from "./FilterShell";
 export default function DishList({ dishes }) {
   return (
     <div>
-      {dishes.map((d) => (
+      {dishes.map((d, i) => (
         <FilterItem key={d.id} category={d.category}>
           <Card>
-            <DishCard dish={d} />
+            {/* the first photo is the largest thing on screen when the menu opens */}
+            <DishCard dish={d} priority={i === 0} />
           </Card>
         </FilterItem>
       ))}

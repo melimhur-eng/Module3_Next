@@ -3,7 +3,7 @@ import Link from "next/link";
 import DishActions from "./DishActions";
 
 // Server component: plain markup, no JavaScript sent for it.
-export default function DishCard({ dish }) {
+export default function DishCard({ dish, priority = false }) {
   return (
     <div className="dish">
       <Image
@@ -13,6 +13,7 @@ export default function DishCard({ dish }) {
         width={2400}
         height={1600}
         sizes="160px" // the thumbnail is always 160px wide
+        priority={priority}
       />
       <h3>
         <Link href={`/menu/${dish.id}`}>{dish.name}</Link>{" "}

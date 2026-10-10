@@ -5,7 +5,7 @@
 | Data | Where | Why |
 |---|---|---|
 | Menu and dishes | Server: `getDishes()` / `getDish()` in server components | Public, indexable and cacheable; it is in the HTML on arrival |
-| Order history (`/orders`) | Server: `listOrdersFor(session.id)` | Private, so it's scoped to the session on the server and never fetched by id from the browser |
+| Order history (`/orders`) | Server: `pageOfOrdersFor(session.id, { sort, dir, page })`, one page of 10 | Private, so it's scoped to the session on the server and never fetched by id from the browser |
 | Order status (`/orders/[id]`) | Server first (`getOrderFor(session.id, id)`), then polled on the client | The first paint has the data (`fallbackData`); the status keeps changing afterwards |
 | Menu search | Client: SWR, debounced | Triggered by typing |
 | Paged dishes (`/browse`) | Client: SWR | Triggered by clicking a page |

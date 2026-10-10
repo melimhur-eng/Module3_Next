@@ -429,3 +429,60 @@ a {
 main {
   min-height: 100vh;
 }
+
+/* a real height, so the chart can size itself and nothing jumps when it appears */
+.chart {
+  width: 100%;
+  height: 300px;
+  margin-bottom: 12px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin-bottom: 24px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+}
+
+caption {
+  text-align: left;
+  font-weight: 600;
+  padding: 8px 0;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+thead th {
+  border-bottom: 2px solid var(--text);
+}
+
+/* numbers right-aligned with digits of equal width, so columns line up */
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.skeleton-block {
+  height: 300px;
+  border-radius: 6px;
+  background: var(--border);
+  margin-bottom: 12px;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.skeleton-row {
+  height: 36px;
+  border-radius: 4px;
+  background: var(--border);
+  margin-bottom: 6px;
+  animation: pulse 1.2s ease-in-out infinite;
+}

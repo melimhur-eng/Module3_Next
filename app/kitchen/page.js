@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentStatus, listAllOrders } from "@/lib/orders";
 import { getSession } from "@/lib/session";
@@ -22,12 +23,20 @@ export default async function KitchenPage() {
     );
   }
 
-  const orders = listAllOrders();
+  // only orders that still need the kitchen; the history is on the dashboard
+  const orders = listAllOrders().filter(
+    (o) => !["cancelled", "delivered"].includes(currentStatus(o))
+  );
 
   return (
     <section>
-      <h1>Kitchen — all orders</h1>
-      {orders.length === 0 && <p className="empty">No orders yet.</p>}
+      <h1>Kitchen — open orders</h1>
+      <p>
+        <Link href="/kitchen/dashboard">Dashboard: revenue and orders per day →</Link>
+      </p>
+      {orders.length === 0 && (
+        <p className="empty">No open orders right now. New orders appear here as they are placed.</p>
+      )}
       <ul className="orders">
         {orders.map((o) => {
           const status = currentStatus(o);

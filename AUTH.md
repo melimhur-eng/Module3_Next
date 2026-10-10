@@ -40,7 +40,7 @@ for the hashing code: none of them are in the browser's JavaScript.
 | Route | Layer 1 | Layer 2 | Layer 3 |
 |---|---|---|---|
 | `/checkout` | Redirect if no cookie | `getSession()`, else redirect to `/login?next=/checkout` | `placeOrder` checks the session again; the order's owner is always `user.id`, never a value from the form |
-| `/orders` | Redirect if no cookie | `getSession()`; the list is `listOrdersFor(user.id)`, so it can only ever contain your orders | `cancelOrder` checks the session (401-style message) **and** that `order.userId === user.id` (403-style message) |
+| `/orders` | Redirect if no cookie | `getSession()`; the list is `pageOfOrdersFor(user.id, …)`, so it can only ever contain your orders | `cancelOrder` checks the session (401-style message) **and** that `order.userId === user.id` (403-style message) |
 | `/orders/[id]` | Redirect if no cookie | `getOrderFor(user.id, id)`: someone else's order id shows "Not found", exactly like a made-up id | `GET /api/orders/[id]` (polled by the page): 401 without a session, 404 for an order that isn't yours |
 | `/kitchen` | Redirect if no cookie | `getSession()` and `role === "staff"`, otherwise "Staff only" | `markDelivered` throws unless the session's role is `staff` |
 | `POST /api/orders` | Not in the matcher (it's an API) | — | 401 without a valid session; the owner is the session's id |

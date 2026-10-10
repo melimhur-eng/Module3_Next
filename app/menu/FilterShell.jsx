@@ -1,13 +1,14 @@
 "use client";
 
 import { createContext, Suspense, useContext, useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import useSWR from "swr";
-import Card from "@/components/Card";
-import { fetcher } from "@/lib/fetcher";
 import { useDebounce } from "@/lib/useDebounce";
-import DishActions from "./DishActions";
+
+// Split into its own chunk: downloaded the first time someone types.
+const SearchResults = dynamic(() => import("./SearchResults"), {
+  loading: () => <p className="loading">Searching…</p>,
+});
 
 const FilterContext = createContext("All");
 
@@ -20,12 +21,6 @@ export default function FilterShell({ index, children }) {
 
   // wait until typing pauses, so "tibs" sends one request, not four
   const term = useDebounce(search.trim(), 300);
-  // a null key means "don't fetch": nothing is requested for an empty box
-  const key = term ? `/api/dishes?q=${encodeURIComponent(term)}` : null;
-  // keepPreviousData: while the next search loads, keep showing the last results
-  const { data: results, error, isLoading, isValidating } = useSWR(key, fetcher, {
-    keepPreviousData: true,
-  });
 
   // the input only exists in the DOM after the first render, so focus it in an effect
   useEffect(() => {
@@ -54,25 +49,7 @@ export default function FilterShell({ index, children }) {
           <CategoryFilter index={index}>{children}</CategoryFilter>
         </Suspense>
       ) : (
-        <div aria-live="polite" className={isValidating ? "updating" : undefined}>
-          {error && <p className="error">⚠ Search is unavailable right now. Please try again.</p>}
-          {!results && isLoading && <p className="loading">Searching…</p>}
-          {results && results.length === 0 && (
-            <p className="empty">No dishes match “{term}”.</p>
-          )}
-          {results?.map((d) => (
-            <Card key={d.id}>
-              <div className="dish">
-                <h3>
-                  <Link href={`/menu/${d.id}`}>{d.name}</Link>{" "}
-                  {d.spicy === true && <span className="badge">Spicy</span>}
-                </h3>
-                <p>{d.price} ETB</p>
-                <DishActions dish={d} />
-              </div>
-            </Card>
-          ))}
-        </div>
+        <SearchResults term={term} />
       )}
     </section>
   );

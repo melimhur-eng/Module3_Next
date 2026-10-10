@@ -2,14 +2,15 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { createOrder } from "@/lib/orders";
-import { getOrCreateCustomerId, getUser } from "@/lib/session";
+import { createOrder, publicOrder } from "@/lib/orders";
+import { getSession } from "@/lib/session";
 
 // Server action: runs on the server, called straight from the checkout form.
 // Returns { order } on success or { fieldErrors } when something needs fixing.
 export async function placeOrder(previousState, formData) {
   // check again here: the action can be called without going through the page
-  if (!(await getUser())) {
+  const user = await getSession();
+  if (!user) {
     return { formError: "Your sign-in has expired. Please sign in again to order." };
   }
 
@@ -28,8 +29,8 @@ export async function placeOrder(previousState, formData) {
     items,
   };
 
-  const customerId = await getOrCreateCustomerId();
-  const { order, fieldErrors } = await createOrder(input, customerId);
+  // the owner is the signed-in user, never something sent from the form
+  const { order, fieldErrors } = await createOrder(input, user.id);
   if (fieldErrors) return { fieldErrors };
 
   // remember the area so the next checkout starts with it
@@ -38,6 +39,5 @@ export async function placeOrder(previousState, formData) {
   // the cached /orders page is now out of date
   revalidatePath("/orders");
 
-  const { customerId: _, ...publicOrder } = order; // never send the internal id
-  return { order: publicOrder };
+  return { order: publicOrder(order) };
 }

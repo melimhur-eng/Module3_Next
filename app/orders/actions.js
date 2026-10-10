@@ -2,25 +2,24 @@
 
 import { revalidatePath } from "next/cache";
 import { currentStatus, getOrder, setOrderStatus } from "@/lib/orders";
-import { getCustomerId } from "@/lib/session";
+import { getSession } from "@/lib/session";
 
-// A server action is a public endpoint: anyone can call it with any id, even
-// if the button is hidden. So the checks happen here, on the server, every time.
+// Layer 3, the real check. A server action is a public endpoint: anyone can
+// call it with any id, signed in or not, button or no button.
 export async function cancelOrder(orderId) {
-  const customerId = await getCustomerId();
-  if (!customerId) {
-    return { error: "We don't know who you are — only the person who placed an order can cancel it." };
-  }
+  // authentication: who is asking?
+  const user = await getSession();
+  if (!user) return { error: "Please sign in to cancel an order." };
 
+  // authorisation: may this person touch this order?
   const order = getOrder(orderId);
-  if (!order) return { error: "That order does not exist." };
-  if (order.customerId !== customerId) return { error: "You can only cancel your own orders." };
+  if (!order || order.userId !== user.id) return { error: "You can only cancel your own orders." };
+
   if (currentStatus(order) !== "placed") {
     return { error: "This order is already being prepared and can no longer be cancelled." };
   }
 
   setOrderStatus(orderId, "cancelled");
   revalidatePath("/orders");
-  revalidatePath(`/orders/${orderId}`);
   return { ok: true };
 }

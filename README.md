@@ -35,11 +35,15 @@ npm start
 | `/checkout` | `app/checkout/page.js` | The validated checkout form |
 | any unknown URL | `app/not-found.js` | "Not found" with links back |
 
+How each route is rendered (static, revalidated, prebuilt or dynamic) and why
+is explained in [STRATEGY.md](STRATEGY.md).
+
 Special files:
 
 | File | When it appears |
 |---|---|
 | `app/layout.js` | Wraps every page: owns `<html>` and `<body>`, the header and the footer |
+| `app/menu/layout.js` | Wraps `/menu` and every dish page: the category sidebar, which survives navigation |
 | `app/menu/loading.js` | While anything in `/menu` is rendering on the server, e.g. opening a dish |
 | `app/menu/error.js` | When something in `/menu` throws. Try `/menu?crash=tibs` |
 | `app/not-found.js` | For unknown URLs, and when a page calls `notFound()` (e.g. `/menu/not-a-dish`) |
@@ -48,15 +52,44 @@ Special files:
 `CategoryBar.jsx`, `Dish.jsx` and `Menu.jsx` sit next to the menu page, but
 only files named `page.js` become URLs, so `/menu/DishList` shows "Not found".
 
-All internal navigation uses `next/link`. `CategoryBar` is a client component
-that changes the category with `useRouter().push()`.
+All internal navigation uses `next/link`. `CategoryBar` (in the menu sidebar)
+is a client component that changes the category with `useRouter().push()`.
+
+## Build output
+
+`npm run build`:
+
+```
+Route (app)                                 Size  First Load JS  Revalidate  Expire
+┌ ○ /                                      165 B         106 kB          1h      1y
+├ ○ /_not-found                            127 B         103 kB
+├ ○ /cart                                  778 B         109 kB
+├ ƒ /checkout                            2.15 kB         111 kB
+├ ○ /menu                                2.06 kB         111 kB          1h      1y
+└ ● /menu/[id]                             528 B         109 kB
+    ├ /menu/doro-wat
+    ├ /menu/shiro
+    ├ /menu/tibs
+    └ [+4 more paths]
++ First Load JS shared by all             103 kB
+  ├ chunks/255-ce8c7c75002f810b.js       46.5 kB
+  ├ chunks/4bd1b696-c023c6e3521b1417.js  54.2 kB
+  └ other shared chunks (total)          1.92 kB
+
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+```
+
 
 ## Project structure
 
 ```
 app/
   layout.js, globals.css, page.js, not-found.js
-  menu/      page.js, loading.js, error.js, Menu, CategoryBar, DishList, Dish
+  menu/      layout.js, page.js, loading.js, error.js,
+             Menu, CategoryBar, ViewCounter, DishList, Dish
     [id]/    page.js, AddToOrder
   cart/      page.js, Cart
   checkout/  page.js, Checkout, Field, validate.js

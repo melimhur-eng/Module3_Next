@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Addis Eats (Next.js)
 
-## Getting Started
+Addis Eats, a food-ordering frontend for Addis Ababa, rebuilt on **Next.js
+(App Router)** for CodeOps Module 3, week 8.
 
-First, run the development server:
+The components from the React version move across almost unchanged. What
+changes is the routing: every screen is now a folder inside `app/`, and the
+loading, error and not-found states are files with reserved names.
+
+## How to run
+
+You need Node.js 18.18 or newer.
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open http://localhost:3000. For a production build:
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```bash
+npm run build
+npm start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Routes and the files that produce them
 
-## Learn More
+| URL | File | What it shows |
+|---|---|---|
+| `/` | `app/page.js` | Today's specials and a link into the menu |
+| `/menu` | `app/menu/page.js` | The menu with search and category chips |
+| `/menu?category=Vegan` | `app/menu/page.js` | The same page, filtered by the query string |
+| `/menu/[id]` (e.g. `/menu/kitfo`) | `app/menu/[id]/page.js` | One dish. `id` comes from the `params` prop, and an unknown id calls `notFound()` |
+| `/cart` | `app/cart/page.js` | Order lines and the running ETB total |
+| `/checkout` | `app/checkout/page.js` | The validated checkout form |
+| any unknown URL | `app/not-found.js` | "Not found" with links back |
 
-To learn more about Next.js, take a look at the following resources:
+Special files:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| File | When it appears |
+|---|---|
+| `app/layout.js` | Wraps every page: owns `<html>` and `<body>`, the header and the footer |
+| `app/menu/loading.js` | While anything in `/menu` is rendering on the server, e.g. opening a dish |
+| `app/menu/error.js` | When something in `/menu` throws. Try `/menu?crash=tibs` |
+| `app/not-found.js` | For unknown URLs, and when a page calls `notFound()` (e.g. `/menu/not-a-dish`) |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Not every file in `app/` is a route.** `app/menu/DishList.jsx`,
+`CategoryBar.jsx`, `Dish.jsx` and `Menu.jsx` sit next to the menu page, but
+only files named `page.js` become URLs, so `/menu/DishList` shows "Not found".
 
-## Deploy on Vercel
+All internal navigation uses `next/link`. `CategoryBar` is a client component
+that changes the category with `useRouter().push()`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+app/
+  layout.js, globals.css, page.js, not-found.js
+  menu/      page.js, loading.js, error.js, Menu, CategoryBar, DishList, Dish
+    [id]/    page.js, AddToOrder
+  cart/      page.js, Cart
+  checkout/  page.js, Checkout, Field, validate.js
+components/  Header, NavLinks, CartBadge, CartHydration, Card, Modal
+lib/         dishes.js (getDishes / getDish), cartStore.js, useFetch.js, orders.js
+public/      dishes.json (the menu data)
+```

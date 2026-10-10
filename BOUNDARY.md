@@ -39,7 +39,7 @@ needs it.
 | `components/NavLinks.jsx` | `usePathname()` to highlight the current page |
 | `components/CartBadge.jsx` | Subscribes to the cart store |
 | `components/Modal.jsx` | `createPortal`, key listeners, focus management |
-| `app/menu/FilterShell.jsx` | Search state, debounced SWR search, `useRef` focus, `useSearchParams()`; shares the category with `FilterItem` through context |
+| `app/menu/FilterShell.jsx` | Search state, debounced SWR search, `useRef` focus. Its `CategoryFilter` reads `?category=` and shares it with `FilterItem` through context |
 | `app/menu/DishActions.jsx` | Add button (store) and the quick-view modal (state) |
 | `app/menu/CategoryBar.jsx` | `useRouter().push()` and `useSearchParams()` |
 | `app/menu/ViewCounter.jsx` | State and an effect on `usePathname()` |
@@ -74,6 +74,23 @@ and for `SESSION_SECRET`, and neither appears.
   Every handler is defined inside the client component that uses it.
 - **`layout.js` imports nothing with the directive except `Providers` and
   `Header`'s client children.** Both are leaves.
+
+## A lesson from Day 44: `useSearchParams` and server HTML
+
+On a static page, a client component that calls `useSearchParams()` can't be
+rendered on the server, because the query string is only known per request.
+React skips server rendering **up to the nearest `<Suspense>` boundary** and
+draws that part in the browser instead. From Day 38 to Day 43, `FilterShell`
+and `DishActions` both called it. As a result the `/menu` HTML contained only
+the loading skeleton: the dishes travelled in the page's data payload but
+were not visible HTML. A crawler or a reader without JavaScript saw no dishes
+and no `h1`.
+
+The fix (Day 44): only a small `CategoryFilter` reads the query string, and it
+sits in its own `<Suspense>` **whose fallback is the full list**. The server
+now sends all seven dish cards as HTML, and the browser hides the ones outside
+the chosen category once it loads. The sidebar does the same, with the
+category buttons as its fallback. `DishActions` no longer reads the URL.
 
 ## Proof: what the browser downloads
 

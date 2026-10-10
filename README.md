@@ -11,6 +11,7 @@ endpoints and server actions.
 - **[DATA.md](DATA.md)**: every client-side query, its key and refresh rule
 - **[AUTH.md](AUTH.md)**: sign-in, the three layers of protection, and three attacks that failed
 - **[PERF.md](PERF.md)**: Lighthouse before and after: images, font, scripts
+- **SEO and sharing**: see [Metadata, previews and search](#metadata-previews-and-search) below
 
 The components from the React version move across almost unchanged. What
 changes is the routing: every screen is now a folder inside `app/`, and the
@@ -146,6 +147,34 @@ The changes: every photo through `next/image` with real dimensions and
 `next/font`, the help-chat widget on `next/script` with `lazyOnload`, and space
 reserved for streamed content.
 
+## Metadata, previews and search
+
+- **`metadataBase`** comes from `NEXT_PUBLIC_SITE_URL` (`lib/site.js`). On
+  Vercel it falls back to the production domain automatically. Every
+  `og:image` and canonical link in the page source is therefore an absolute
+  URL, which Telegram and other apps need to show the picture.
+- **Titles** use one template in the root layout (`"%s · Addis Eats"`). Each
+  page only gives its own short part: "Menu", "Kitfo", "Your order".
+- **Every route has its own human-readable description.** Dish pages build
+  theirs with `generateMetadata` from the dish record, so two dishes never
+  share one, e.g. "Kitfo, 320 ETB: Minced beef warmed in spiced butter with
+  mitmita, served with ayib and kocho."
+- **Social previews** (1200 × 630): `app/opengraph-image.jpg` for the whole
+  site, plus a card drawn for each dish by `app/menu/[id]/opengraph-image.jsx`
+  (name, category, price in ETB).
+- **Structured data:** each dish page has `MenuItem` JSON-LD, built from the
+  same record the page shows, so its name and ETB price always match.
+- **`/sitemap.xml`** (`app/sitemap.js`) is generated from the real menu and
+  lists only public pages. **`/robots.txt`** (`app/robots.js`) disallows
+  `/checkout`, `/orders`, `/kitchen`, `/login`, `/cart` and `/api/`.
+- **Canonical URLs** on routes that take query parameters: `/menu`
+  (`?category=`), `/browse` (`?page=`) and `/login` (`?next=`).
+- **One `h1` per page**, describing the page. The site name in the header is
+  no longer an `h1`.
+- **The menu is real HTML.** View the source of `/menu` and every dish is
+  there, server-rendered. The `?category=` filter is applied in the browser
+  afterwards.
+
 ## Live data in the browser (SWR)
 
 Three things are fetched from the browser with SWR, all through one shared
@@ -183,32 +212,40 @@ First Load JS for `/menu`, from `npm run build`:
 
 ```
 Route (app)                                 Size  First Load JS  Revalidate  Expire
-┌ ○ /                                      165 B         106 kB          1h      1y
-├ ○ /_not-found                            141 B         103 kB
-├ ƒ /api/dishes                            141 B         103 kB
-├ ƒ /api/dishes/[id]                       141 B         103 kB
-├ ƒ /api/orders                            141 B         103 kB
-├ ƒ /api/orders/[id]                       141 B         103 kB
-├ ○ /browse                                964 B         112 kB
+┌ ○ /                                      173 B         111 kB          1h      1y
+├ ○ /_not-found                            149 B         103 kB
+├ ƒ /api/dishes                            149 B         103 kB
+├ ƒ /api/dishes/[id]                       149 B         103 kB
+├ ƒ /api/orders                            149 B         103 kB
+├ ƒ /api/orders/[id]                       149 B         103 kB
+├ ○ /browse                                963 B         112 kB
 ├ ○ /cart                                  778 B         109 kB
-├ ƒ /checkout                            2.35 kB         111 kB
-├ ƒ /kitchen                               141 B         103 kB
-├ ƒ /login                                 141 B         103 kB
-├ ○ /menu                                2.28 kB         115 kB          1h      1y
-├ ● /menu/[id]                             528 B         109 kB
+├ ƒ /checkout                            2.36 kB         111 kB
+├ ƒ /kitchen                               149 B         103 kB
+├ ƒ /login                                 149 B         103 kB
+├ ○ /menu                                2.32 kB         121 kB          1h      1y
+├ ● /menu/[id]                             537 B         114 kB
 ├   ├ /menu/doro-wat
 ├   ├ /menu/shiro
 ├   ├ /menu/tibs
 ├   └ [+4 more paths]
-├ ƒ /orders                                675 B         107 kB
-└ ƒ /orders/[id]                           822 B         112 kB
+├ ● /menu/[id]/opengraph-image             149 B         103 kB
+├   ├ /menu/doro-wat/opengraph-image
+├   ├ /menu/shiro/opengraph-image
+├   ├ /menu/tibs/opengraph-image
+├   └ [+4 more paths]
+├ ○ /opengraph-image.jpg                     0 B            0 B
+├ ƒ /orders                                681 B         107 kB
+├ ƒ /orders/[id]                           823 B         112 kB
+├ ○ /robots.txt                            149 B         103 kB
+└ ○ /sitemap.xml                           149 B         103 kB
 + First Load JS shared by all             103 kB
   ├ chunks/255-ce8c7c75002f810b.js       46.5 kB
   ├ chunks/4bd1b696-c023c6e3521b1417.js  54.2 kB
   └ other shared chunks (total)          1.92 kB
 
 
-ƒ Middleware                             34.2 kB
+ƒ Middleware                               34 kB
 
 ○  (Static)   prerendered as static content
 ●  (SSG)      prerendered as static HTML (uses generateStaticParams)
@@ -247,10 +284,11 @@ search box.
 
 ```
 app/
-  layout.js, globals.css, page.js, not-found.js
+  layout.js, globals.css, page.js, not-found.js,
+  sitemap.js, robots.js, opengraph-image.jpg
   menu/      layout.js, page.js, loading.js, error.js,
              FilterShell, DishList, DishCard, DishActions, CategoryBar, ViewCounter
-    [id]/    page.js, AddToOrder
+    [id]/    page.js, AddToOrder, opengraph-image.jsx (preview card per dish)
   cart/      page.js, Cart
   checkout/  page.js, Checkout, Field, actions.js (placeOrder)
   orders/    page.js, CancelButton, actions.js (cancelOrder)
@@ -265,7 +303,7 @@ components/  Header, NavLinks, CartBadge, Providers, Card, Modal
 lib/         dishes.js, orders.js (order store), validate.js (shared rules),
              session.js (getSession, server-only), users.js (hashed passwords),
              safeNext.js, http.js, cartStore.js,
-             fetcher.js, useOrder.js, useDebounce.js
+             fetcher.js, useOrder.js, useDebounce.js, site.js (SITE_URL)
 public/      dishes.json (the menu data), images/ (dish photos and the hero),
              chat-widget.js (stand-in for a third-party help widget)
 ```

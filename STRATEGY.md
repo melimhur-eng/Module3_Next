@@ -14,6 +14,9 @@
 | `/browse` | Static shell, data fetched in the browser | ○ | The shell is the same for everyone; the page of dishes depends on `?page=`, which SWR fetches client-side. |
 | `/api/*` | Dynamic | ƒ | Route handlers read the request (query string, body, cookies). |
 | not found | Static | ○ | The same message for everyone. |
+| `/sitemap.xml`, `/robots.txt` | Static | ○ | Generated from the menu at build time; they change only when the menu does. |
+| `/opengraph-image.jpg` | Static file | ○ | One site-wide preview image. |
+| `/menu/[id]/opengraph-image` | Static, one per dish | ● | Drawn at build time from each dish, with the same params as the dish pages. |
 
 ## Layouts
 

@@ -1,6 +1,16 @@
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Providers from "@/components/Providers";
+
+// Downloaded at build time and served from this site: no request to Google,
+// no render-blocking stylesheet, and a size-matched fallback so text does not jump.
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  display: "swap",
+  variable: "--font-poppins",
+});
 
 export const metadata = {
   title: "Addis Eats",
@@ -11,13 +21,8 @@ export const metadata = {
 // rest of the page as children.
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={poppins.variable}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
-          rel="stylesheet"
-        />
         <script src="/chat-widget.js" async></script>
       </head>
       <body>

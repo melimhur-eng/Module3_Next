@@ -317,3 +317,12 @@ a {
     flex-direction: row;
   }
 }
+
+.orders {
+  list-style: none;
+  padding: 0;
+}
+
+.orders .card div {
+  margin-top: 8px;
+}

@@ -8,6 +8,7 @@ const links = [
   { href: "/menu", label: "Menu" },
   { href: "/cart", label: "Cart" },
   { href: "/checkout", label: "Checkout" },
+  { href: "/orders", label: "Orders" },
 ];
 
 // usePathname only works in the browser, so the highlight needs a client component.

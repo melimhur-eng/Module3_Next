@@ -410,3 +410,9 @@ a {
   border-radius: 999px;
   text-decoration: none;
 }
+
+/* Reserve a screen's worth of space for the page, so content that streams in
+   (the dish list) grows into it instead of pushing the footer down the screen. */
+main {
+  min-height: 100vh;
+}

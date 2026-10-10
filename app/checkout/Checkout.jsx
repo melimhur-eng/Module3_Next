@@ -9,12 +9,12 @@ import { placeOrder } from "./actions";
 
 const FIELDS = ["name", "phone", "area", "notes"];
 
-export default function Checkout({ defaultArea }) {
+export default function Checkout({ defaultArea, defaultName }) {
   const items = useCartStore(selectItems);
   const total = useCartStore(selectTotal);
   const clear = useCartStore((s) => s.clear);
 
-  const [form, setForm] = useState({ name: "", phone: "", area: defaultArea, notes: "" });
+  const [form, setForm] = useState({ name: defaultName, phone: "", area: defaultArea, notes: "" });
   const [touched, setTouched] = useState({});
   const [edited, setEdited] = useState({}); // fields changed since the server last answered
   // isPending is true while the action runs: it disables the button (no double orders)
@@ -87,9 +87,10 @@ export default function Checkout({ defaultArea }) {
     <section>
       <h2>Checkout</h2>
 
-      {state.fieldErrors?.items && (
+      {(state.formError || state.fieldErrors?.items) && (
         <p className="error banner" role="alert">
-          ⚠ {state.fieldErrors.items}
+          ⚠ {state.formError ?? state.fieldErrors.items}{" "}
+          {state.formError && <Link href="/login?next=/checkout">Sign in</Link>}
         </p>
       )}
 

@@ -3,11 +3,16 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createOrder } from "@/lib/orders";
-import { getOrCreateCustomerId } from "@/lib/session";
+import { getOrCreateCustomerId, getUser } from "@/lib/session";
 
 // Server action: runs on the server, called straight from the checkout form.
 // Returns { order } on success or { fieldErrors } when something needs fixing.
 export async function placeOrder(previousState, formData) {
+  // check again here: the action can be called without going through the page
+  if (!(await getUser())) {
+    return { formError: "Your sign-in has expired. Please sign in again to order." };
+  }
+
   let items;
   try {
     items = JSON.parse(formData.get("items") ?? "[]");

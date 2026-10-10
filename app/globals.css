@@ -326,3 +326,10 @@ a {
 .orders .card div {
   margin-top: 8px;
 }
+
+.signed-in {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}

@@ -10,6 +10,7 @@ endpoints and server actions.
 - **[BOUNDARY.md](BOUNDARY.md)**: which components run on the server or the client, and why
 - **[DATA.md](DATA.md)**: every client-side query, its key and refresh rule
 - **[AUTH.md](AUTH.md)**: sign-in, the three layers of protection, and three attacks that failed
+- **[PERF.md](PERF.md)**: Lighthouse before and after: images, font, scripts
 
 The components from the React version move across almost unchanged. What
 changes is the routing: every screen is now a folder inside `app/`, and the
@@ -127,6 +128,23 @@ checks the session and ownership (or the staff role) inside the action.
 
 Orders are kept in memory (a stand-in for a database), so they disappear when
 the server restarts.
+
+## Performance
+
+Measured with Lighthouse on the production build, mobile and throttled
+(details in [PERF.md](PERF.md)):
+
+| | Before | After |
+|---|---|---|
+| `/menu` LCP | 35.4 s | 2.67 s |
+| `/menu` page weight | 9.3 MB | 228 KiB |
+| `/` LCP | 3.08 s | 2.13 s |
+| `/menu` CLS | 0.085 (at worst) | 0.038 |
+
+The changes: every photo through `next/image` with real dimensions and
+`sizes`, `priority` on the one hero image, the Poppins font self-hosted with
+`next/font`, the help-chat widget on `next/script` with `lazyOnload`, and space
+reserved for streamed content.
 
 ## Live data in the browser (SWR)
 
@@ -248,5 +266,6 @@ lib/         dishes.js, orders.js (order store), validate.js (shared rules),
              session.js (getSession, server-only), users.js (hashed passwords),
              safeNext.js, http.js, cartStore.js,
              fetcher.js, useOrder.js, useDebounce.js
-public/      dishes.json (the menu data)
+public/      dishes.json (the menu data), images/ (dish photos and the hero),
+             chat-widget.js (stand-in for a third-party help widget)
 ```

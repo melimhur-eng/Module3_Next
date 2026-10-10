@@ -1,26 +1,34 @@
 "use client";
 
 import { createContext, useContext, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import useSWR from "swr";
+import Card from "@/components/Card";
+import { fetcher } from "@/lib/fetcher";
+import { useDebounce } from "@/lib/useDebounce";
+import DishActions from "./DishActions";
 
-const FilterContext = createContext({ search: "", category: "All" });
+const FilterContext = createContext("All");
 
-function matches(dish, { search, category }) {
-  return (
-    (category === "All" || dish.category === category) &&
-    dish.name.toLowerCase().includes(search.toLowerCase())
-  );
-}
-
-// Owns the search box and reads the category from the URL. The dish cards are
-// rendered on the server and arrive as children; each one is wrapped in a
-// FilterItem that hides itself when it does not match.
+// Owns the search box and reads the category from the URL. With no search
+// term, the server-rendered dish cards (children) are shown, filtered by
+// category. With a term, results come from GET /api/dishes?q=…
 export default function FilterShell({ index, children }) {
   const category = useSearchParams().get("category") ?? "All";
   const [search, setSearch] = useState("");
   const searchRef = useRef(null);
-  const filter = { search, category };
-  const visible = index.filter((d) => matches(d, filter)).length;
+
+  // wait until typing pauses, so "tibs" sends one request, not four
+  const term = useDebounce(search.trim(), 300);
+  // a null key means "don't fetch": nothing is requested for an empty box
+  const key = term ? `/api/dishes?q=${encodeURIComponent(term)}` : null;
+  // keepPreviousData: while the next search loads, keep showing the last results
+  const { data: results, error, isLoading, isValidating } = useSWR(key, fetcher, {
+    keepPreviousData: true,
+  });
+
+  const inCategory = index.filter((d) => category === "All" || d.category === category).length;
 
   // the input only exists in the DOM after the first render, so focus it in an effect
   useEffect(() => {
@@ -34,18 +42,44 @@ export default function FilterShell({ index, children }) {
         ref={searchRef}
         className="search"
         type="search"
-        placeholder="Search dishes"
-        aria-label="Search dishes"
+        placeholder="Search all dishes"
+        aria-label="Search all dishes"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
-      <FilterContext.Provider value={filter}>{children}</FilterContext.Provider>
-      {visible === 0 && <p className="empty">No dishes match — try another category.</p>}
+
+      {search.trim() === "" ? (
+        <>
+          <FilterContext.Provider value={category}>{children}</FilterContext.Provider>
+          {inCategory === 0 && <p className="empty">No dishes in this category yet.</p>}
+        </>
+      ) : (
+        <div aria-live="polite" className={isValidating ? "updating" : undefined}>
+          {error && <p className="error">⚠ Search is unavailable right now. Please try again.</p>}
+          {!results && isLoading && <p className="loading">Searching…</p>}
+          {results && results.length === 0 && (
+            <p className="empty">No dishes match “{term}”.</p>
+          )}
+          {results?.map((d) => (
+            <Card key={d.id}>
+              <div className="dish">
+                <h3>
+                  <Link href={`/menu/${d.id}`}>{d.name}</Link>{" "}
+                  {d.spicy === true && <span className="badge">Spicy</span>}
+                </h3>
+                <p>{d.price} ETB</p>
+                <DishActions dish={d} />
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
 
-export function FilterItem({ name, category, children }) {
-  const filter = useContext(FilterContext);
-  return matches({ name, category }, filter) ? children : null;
+// Wraps each server-rendered card; hides it when it is not in the chosen category.
+export function FilterItem({ category, children }) {
+  const selected = useContext(FilterContext);
+  return selected === "All" || selected === category ? children : null;
 }

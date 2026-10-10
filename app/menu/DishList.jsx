@@ -7,7 +7,7 @@ export default function DishList({ dishes }) {
   return (
     <div>
       {dishes.map((d) => (
-        <FilterItem key={d.id} name={d.name} category={d.category}>
+        <FilterItem key={d.id} category={d.category}>
           <Card>
             <DishCard dish={d} />
           </Card>

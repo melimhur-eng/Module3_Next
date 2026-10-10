@@ -6,10 +6,11 @@
 | `/menu` | Static, revalidate every hour (`export const revalidate = 3600`) | ○ 1h | The menu changes a few times a day at most, and is the same for everyone. |
 | `/menu/[id]` | Static, one page per dish (`generateStaticParams`, `dynamicParams = false`) | ● | Every dish is known at build time, so each page is plain HTML, and any other id is a real 404. |
 | `/cart` | Static shell | ○ | The cart lives in the visitor's browser (localStorage), so the server sends the same empty shell to everyone. |
-| `/checkout` | Dynamic | ƒ | It checks the sign-in cookie (`getUser()`, redirecting to `/login` if missing) and reads `addis-eats-area` to pre-fill the form, so it depends on who is asking. |
+| `/checkout` | Dynamic | ƒ | It verifies the session (`getSession()`) and reads `addis-eats-area` to pre-fill the form, so it depends on who is asking. |
 | `/login` | Dynamic | ƒ | It reads `searchParams` (`next`, `error`) to know where to send you back. |
-| `/orders` | Static, revalidated on demand | ○ | The list only changes when an order is placed or cancelled, so those actions call `revalidatePath("/orders")` instead of rendering on every visit. |
-| `/orders/[id]` | Dynamic, then polled in the browser | ƒ | Orders are created at run time, so the page is rendered on request with the current status; SWR keeps it fresh afterwards (DATA.md). |
+| `/orders` | Dynamic | ƒ | Since Day 42 it shows only the signed-in person's orders, so it reads the session cookie and cannot be shared between visitors. (On Day 39 it was a public static list refreshed with `revalidatePath`.) |
+| `/kitchen` | Dynamic | ƒ | Staff only: it reads the session to check the role, and shows live order data. |
+| `/orders/[id]` | Dynamic, then polled in the browser | ƒ | It checks the session and that the order is yours, then renders the current status; SWR keeps it fresh afterwards (DATA.md). |
 | `/browse` | Static shell, data fetched in the browser | ○ | The shell is the same for everyone; the page of dishes depends on `?page=`, which SWR fetches client-side. |
 | `/api/*` | Dynamic | ƒ | Route handlers read the request (query string, body, cookies). |
 | not found | Static | ○ | The same message for everyone. |
@@ -29,3 +30,9 @@
 The menu page wraps the dish list in `<Suspense>`. The sidebar in the menu
 layout renders immediately, and the dish list shows a skeleton until its data
 arrives.
+
+## Middleware
+
+`middleware.js` runs only on `/checkout`, `/orders` and `/kitchen` (its
+matcher). It doesn't touch static pages, images or scripts, so the static and
+prebuilt routes above stay as fast as before.

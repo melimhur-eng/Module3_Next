@@ -8,7 +8,7 @@ so a 404 or 500 becomes SWR's `error` and never ends up in `data`.
 
 | Query | Key | Refresh rule | Why |
 |---|---|---|---|
-| Order status (`useOrder`, used by `OrderStatusLine` and `OrderProgress`) | `/api/orders/${id}` | `refreshInterval` 5 s, stopping (0) once the status is `delivered` or `cancelled`. `fallbackData` comes from the server render | An order changes on its own every minute or so; 5 s feels live without hammering the server, and polling a finished order is wasted. |
+| Order status (`useOrder`, used by `OrderStatusLine` and `OrderProgress`) | `/api/orders/${id}` (only answers for your own orders, see AUTH.md) | `refreshInterval` 5 s, stopping (0) once the status is `delivered` or `cancelled`. `fallbackData` comes from the server render | An order changes on its own every minute or so; 5 s feels live without hammering the server, and polling a finished order is wasted. |
 | Menu search (`FilterShell`) | `/api/dishes?q=${term}`, or **`null`** when the box is empty | Debounced 300 ms (`useDebounce`), `keepPreviousData: true`, SWR's default 2 s de-duplication | The term only matters once typing pauses. An empty box needs no request, because the server-rendered list is already on screen. Keeping the last results visible stops the list flashing empty between searches. |
 | Paged dishes (`PagedDishes`) | `/api/dishes?page=${page}&limit=3` | `keepPreviousData: true`; the page number comes from the URL (`?page=2`) | Each page is its own key, so going back to a page is instant from the cache. Keeping the previous page on screen (dimmed) while the next one loads avoids a blank flash, and the page lives in the URL so it can be linked and shared. |
 

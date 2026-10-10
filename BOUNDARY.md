@@ -21,9 +21,10 @@ needs it.
 | `app/menu/loading.js` | Static skeleton |
 | `app/menu/[id]/page.js` | Awaits `getDish()`, calls `notFound()` |
 | `app/cart/page.js` | Thin page around the client `Cart` |
-| `app/checkout/page.js` | The guard: reads the signed sign-in cookie and redirects; the sign-out form posts to a server action |
+| `app/checkout/page.js` | Verifies the session with `getSession()` and redirects; the sign-out form posts to a server action |
 | `app/login/page.js` | A plain `<form action={signIn}>`, which works without JavaScript |
-| `app/orders/page.js` | Reads the order store and renders the list |
+| `app/kitchen/page.js` | Checks the staff role and lists every order; each "Mark delivered" is a plain form posting to a server action |
+| `app/orders/page.js` | Verifies the session and lists only that person's orders |
 | `app/orders/[id]/page.js` | Reads the order and passes it to the polling components as `fallbackData` |
 | `app/browse/page.js` | A static heading and a Suspense boundary |
 | `app/not-found.js` | Static message |
@@ -56,8 +57,8 @@ client components.
 ## Server-only code
 
 `"use server"` files (`app/checkout/actions.js`, `app/orders/actions.js`,
-`app/login/actions.js`) run only on the server. The browser gets a reference it
-can call, never the code. `lib/session.js` imports `server-only`, so importing
+`app/login/actions.js`, `app/kitchen/actions.js`) run only on the server. The browser gets a reference it
+can call, never the code. `lib/session.js` and `lib/users.js` import `server-only`, so importing
 it from a client component would fail the build, and `SESSION_SECRET` can't
 leak into the bundle. A production build was searched for the secret's value
 and for `SESSION_SECRET`, and neither appears.

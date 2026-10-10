@@ -19,6 +19,8 @@ export default async function HomePage() {
         height={1500}
         // full width on phones, never wider than the 688px content column
         sizes="(max-width: 720px) 100vw, 688px"
+        // the largest thing above the fold: fetch it first instead of lazily
+        priority
       />
       <section>
         <h2>Today’s specials</h2>

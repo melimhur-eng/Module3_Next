@@ -4,6 +4,10 @@ import { getDish, getDishes } from "@/lib/dishes";
 import AddToOrder from "./AddToOrder";
 
 // Every dish is known at build time, so one HTML page is generated per dish.
+// Any other id is answered with a real 404 straight away, instead of being
+// rendered on demand (where streaming would already have sent a 200 status).
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
   const dishes = await getDishes();
   return dishes.map((d) => ({ id: d.id }));

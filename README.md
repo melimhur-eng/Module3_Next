@@ -132,20 +132,24 @@ the server restarts.
 
 ## Performance
 
-Measured with Lighthouse on the production build, mobile and throttled
-(details in [PERF.md](PERF.md)):
+Measured with Lighthouse on the production build, mobile and throttled. The
+full budget and the cause of every change are in [PERF.md](PERF.md).
 
-| | Before | After |
-|---|---|---|
-| `/menu` LCP | 35.4 s | 2.67 s |
-| `/menu` page weight | 9.3 MB | 228 KiB |
-| `/` LCP | 3.08 s | 2.13 s |
-| `/menu` CLS | 0.085 (at worst) | 0.038 |
+| Measure | Target | Before | After |
+|---|---|---|---|
+| LCP `/` · `/menu` | under 2.5 s | 3.08 s · 35.4 s | 2.11 s · 2.17 s |
+| CLS | under 0.1 | 0.085 | 0 |
+| First Load JS `/menu` | under 120 kB | 121 kB | 117 kB |
+| Largest image | under 150 kB | 1.5 MB | 12 KiB |
+| Lighthouse performance | 90+ | 86 · 67 | 99 · 99 |
 
-The changes: every photo through `next/image` with real dimensions and
-`sizes`, `priority` on the one hero image, the Poppins font self-hosted with
-`next/font`, the help-chat widget on `next/script` with `lazyOnload`, and space
-reserved for streamed content.
+The changes:
+- every photo goes through `next/image` with real dimensions and `sizes`
+- `priority` on one image per page
+- the Poppins font self-hosted with `next/font`
+- search code loaded on first use
+- the help-chat widget behind a "Need help?" facade
+- space reserved for streamed content
 
 ## Metadata, previews and search
 
@@ -223,7 +227,7 @@ Route (app)                                 Size  First Load JS  Revalidate  Exp
 ├ ƒ /checkout                            2.36 kB         111 kB
 ├ ƒ /kitchen                               149 B         103 kB
 ├ ƒ /login                                 149 B         103 kB
-├ ○ /menu                                2.32 kB         121 kB          1h      1y
+├ ○ /menu                                 2.8 kB         117 kB          1h      1y
 ├ ● /menu/[id]                             537 B         114 kB
 ├   ├ /menu/doro-wat
 ├   ├ /menu/shiro
@@ -235,14 +239,14 @@ Route (app)                                 Size  First Load JS  Revalidate  Exp
 ├   ├ /menu/tibs/opengraph-image
 ├   └ [+4 more paths]
 ├ ○ /opengraph-image.jpg                     0 B            0 B
-├ ƒ /orders                                681 B         107 kB
+├ ƒ /orders                                674 B         107 kB
 ├ ƒ /orders/[id]                           823 B         112 kB
 ├ ○ /robots.txt                            149 B         103 kB
 └ ○ /sitemap.xml                           149 B         103 kB
 + First Load JS shared by all             103 kB
   ├ chunks/255-ce8c7c75002f810b.js       46.5 kB
   ├ chunks/4bd1b696-c023c6e3521b1417.js  54.2 kB
-  └ other shared chunks (total)          1.92 kB
+  └ other shared chunks (total)          1.99 kB
 
 
 ƒ Middleware                               34 kB
@@ -287,7 +291,8 @@ app/
   layout.js, globals.css, page.js, not-found.js,
   sitemap.js, robots.js, opengraph-image.jpg
   menu/      layout.js, page.js, loading.js, error.js,
-             FilterShell, DishList, DishCard, DishActions, CategoryBar, ViewCounter
+             FilterShell, SearchResults, DishList, DishCard, DishActions,
+             CategoryBar, ViewCounter
     [id]/    page.js, AddToOrder, opengraph-image.jsx (preview card per dish)
   cart/      page.js, Cart
   checkout/  page.js, Checkout, Field, actions.js (placeOrder)
@@ -299,7 +304,7 @@ app/
 middleware.js  redirects signed-out visitors from the private routes
   api/
     dishes/route.js, dishes/[id]/route.js, orders/route.js, orders/[id]/route.js
-components/  Header, NavLinks, CartBadge, Providers, Card, Modal
+components/  Header, NavLinks, CartBadge, Providers, Card, Modal, HelpChat
 lib/         dishes.js, orders.js (order store), validate.js (shared rules),
              session.js (getSession, server-only), users.js (hashed passwords),
              safeNext.js, http.js, cartStore.js,

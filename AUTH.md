@@ -45,6 +45,17 @@ for the hashing code: none of them are in the browser's JavaScript.
 | `/kitchen` | Redirect if no cookie | `getSession()` and `role === "staff"`, otherwise "Staff only" | `markDelivered` throws unless the session's role is `staff` |
 | `POST /api/orders` | Not in the matcher (it's an API) | — | 401 without a valid session; the owner is the session's id |
 
+## Every action and handler that writes
+
+| Action / handler | Authentication | Authorisation |
+|---|---|---|
+| `signIn` | Checks the phone and password against the stored hash | `next` must pass `safeNext()` |
+| `signOut` | — (deletes the cookie) | — |
+| `placeOrder` | `getSession()`, else "Your sign-in has expired" | The owner is always `session.id`; prices come from the server's menu |
+| `POST /api/orders` | `getSession()`, else 401 | The owner is always `session.id` |
+| `cancelOrder` | `getSession()`, else refused | `order.userId === session.id`, else refused |
+| `markDelivered` | `getSession()`, else throws | `session.role === "staff"`, else throws |
+
 The "Kitchen →" link only appears for staff, but that is just the interface.
 The page and the action refuse non-staff whether or not the link is shown.
 

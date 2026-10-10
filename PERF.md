@@ -1,5 +1,43 @@
 # PERF.md: making Addis Eats fast, measured
 
+## The performance budget (Day 45)
+
+Median of 3 Lighthouse runs (mobile, throttled) on the production build.
+"Before" is the app as it stood at the start of Day 43, once the photos, font
+and widget had been added. "After" is the end of Day 45.
+
+| Measure | Target | Before | After | Met? |
+|---|---|---|---|---|
+| LCP, throttled: `/` | under 2.5 s | 3.08 s | 2.11 s | ✓ |
+| LCP, throttled: `/menu` | under 2.5 s | 35.39 s | 2.17 s | ✓ |
+| CLS (worst page) | under 0.1 | 0.085 (Day 43, step 3) | 0.000 | ✓ |
+| First Load JS, `/menu` | under 120 kB | 121 kB (Day 44) | 117 kB | ✓ |
+| Largest image | under 150 kB | 1,527 KiB (the hero JPEG) | 12 KiB | ✓ |
+| Lighthouse performance | 90 or better | 86 (`/`) · 67 (`/menu`) | 99 · 99 | ✓ |
+| TBT | — | up to 611 ms (Day 43) | 40 ms · 50 ms | |
+
+### Day 45 changes, and what caused each
+
+| Change | Effect |
+|---|---|
+| The search results (and SWR with them) moved into `SearchResults.jsx`, loaded with `next/dynamic` the first time someone types | `/menu` First Load JS 121 kB → 117 kB. Nothing about searching changed: the chunk arrives with the first keystroke, before the debounced request |
+| `priority` on the menu's **first** dish photo (still exactly one priority image per page; the home page's is the hero) | The trace showed the menu's LCP element was that thumbnail, waiting 1.3 s because it was lazy-loaded. Menu LCP 2.67 s → 2.17 s, and the last bit of layout shift disappeared, because the image now arrives with the first paint |
+| Help chat as a **facade**: a plain "Need help?" button, with the widget script (`next/script`) rendered only after a tap | The widget's 600 ms start-up task no longer runs on every page view. TBT about 560 ms → about 45 ms, and the score went from 85 to 99. Someone who wants help waits a moment once; everyone else pays nothing |
+
+Results at the end of Day 45:
+
+| Page | LCP | CLS | TBT | Weight | Largest image | Score |
+|---|---|---|---|---|---|---|
+| `/` | 2.11 s | 0 | 40 ms | 208 KiB | 12 KiB | 99 |
+| `/menu` | 2.17 s | 0 | 50 ms | 231 KiB | 5 KiB | 99 |
+
+These were measured with `next start` on this machine. Deployment comes on
+Day 48, where the same checks get repeated against the live URL.
+
+---
+
+# Day 43: the first optimisation pass
+
 ## How it was measured
 
 - **Production build only:** `npm run build && npm start`, never `npm run dev`.
@@ -87,7 +125,8 @@ stylesheet.
   need listing in `next.config.mjs` (`images.remotePatterns` would be where
   they go).
 - `next/font` replaced the Google Fonts `<link>`.
-- The only third-party-style script uses `next/script` with `lazyOnload`.
+- The only third-party-style script uses `next/script`: `lazyOnload` on Day 43,
+  then (Day 45) rendered only after someone taps "Need help?".
 - `.env.example` is committed and lists every variable. `.env*` is ignored by
   git except `.env.example`. The only secret, `SESSION_SECRET`, has no
   `NEXT_PUBLIC_` prefix, and a production bundle was searched to confirm it is
